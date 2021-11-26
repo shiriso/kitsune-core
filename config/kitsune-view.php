@@ -12,7 +12,7 @@ return [
      | For available layouts check the resources' directory
      | of the included package or your own derivatives.
      */
-    'layout' => env('KITSUNE_VIEW_LAYOUT', 'custom'),
+    'layout' => env('KITSUNE_VIEW_LAYOUT'),
 
     /*
      |--------------------------------------------------------------------------
