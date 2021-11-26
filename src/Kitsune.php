@@ -92,7 +92,7 @@ class Kitsune
      * @param  bool  $prepend
      * @return bool
      */
-    public function addPathForSource(string $sourcePath, string|array $sourceRepository, bool $prepend): bool
+    public function addPathForSource(string $sourcePath, string|array $sourceRepository, bool $prepend = false): bool
     {
         $repository = call_user_func_array([$this, 'getSourceRepository'], Arr::wrap($sourceRepository));
 
