@@ -11,7 +11,7 @@ class Kitsune
 {
     use Tappable;
 
-    protected const VIEW_NAMESPACE = 'kitsune';
+    public const VIEW_NAMESPACE = 'kitsune';
 
     protected ?string $activeLayout;
     protected array $extraSourceRepositories = [];
