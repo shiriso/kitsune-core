@@ -47,7 +47,7 @@ class Kitsune
      */
     public function globalModeIsEnabled(): bool
     {
-        return $this->useGlobalMode ??= config('kitsune.core.global');
+        return $this->useGlobalMode ??= config('kitsune.core.global_mode.enabled');
     }
 
     /**
@@ -57,7 +57,7 @@ class Kitsune
      */
     public function enableGlobalMode(): static
     {
-        if(!$this->useGlobalMode) {
+        if (!$this->useGlobalMode) {
             $this->useGlobalMode = true;
 
             $this->refreshViewSources();
@@ -73,7 +73,13 @@ class Kitsune
      */
     public function disableGlobalMode(): static
     {
-        $this->useGlobalMode = false;
+        if ($this->useGlobalMode) {
+            $this->useGlobalMode = false;
+
+            if (config('kitsune.core.global_mode.reset_on_disable')) {
+                $this->setViewFinderPaths(Arr::wrap(config('view.paths')));
+            }
+        }
 
         return $this;
     }
