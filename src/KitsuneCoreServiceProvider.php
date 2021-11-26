@@ -3,6 +3,8 @@
 namespace Shiriso\Kitsune\Core;
 
 use Illuminate\Support\ServiceProvider;
+use Shiriso\Kitsune\Core\Middleware\KitsuneGlobalModeMiddleware;
+use Shiriso\Kitsune\Core\Middleware\KitsuneMiddleware;
 
 class KitsuneCoreServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/kitsune-view.php', 'kitsune.view');
 
         $this->registerKitsune();
+        $this->registerMiddleware();
     }
 
     /**
@@ -53,6 +56,18 @@ class KitsuneCoreServiceProvider extends ServiceProvider
         $this->app->singleton('kitsune', function () {
             return new (config('kitsune.core.helper', Kitsune::class))();
         });
+    }
+
+    /**
+     * Register Kitsune's middlewares with according shortnames.
+     *
+     * @return void
+     */
+    protected function registerMiddleware()
+    {
+        app('router')
+            ->aliasMiddleware('kitsune', KitsuneMiddleware::class)
+            ->aliasMiddleware('kitsune.global', KitsuneGlobalModeMiddleware::class);
     }
 
     /**
