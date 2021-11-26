@@ -5,15 +5,18 @@ namespace Shiriso\Kitsune\Core;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Traits\Tappable;
-use Illuminate\View\ViewFinderInterface;
+use Illuminate\View\FileViewFinder;
 
 class Kitsune
 {
     use Tappable;
 
+    protected const VIEW_NAMESPACE = 'kitsune';
+
     protected ?string $activeLayout;
     protected array $extraSourceRepositories = [];
-    protected ViewFinderInterface $viewFinder;
+    protected array $namespacePaths = [];
+    protected FileViewFinder $viewFinder;
 
     public function __construct()
     {
@@ -23,13 +26,17 @@ class Kitsune
     }
 
     /**
+     * Configures the view sources accordingly to Kitsune.
+     *
      * @return bool
      */
     public function refreshViewSources(): bool
     {
-        $defaultViewPaths = Arr::wrap(config('view.paths'));
+        $derivedSourcePaths = $this->compileViewPathDerivatives(Arr::wrap(config('view.paths')));
 
-        return $this->setViewFinderPaths($this->compileViewPathDerivatives($defaultViewPaths));
+        $updatedGlobalPaths = config('kitsune.core.global') && $this->setViewFinderPaths($derivedSourcePaths);
+
+        return $this->setViewFinderNamespacedPaths($derivedSourcePaths) || $updatedGlobalPaths;
     }
 
     /**
@@ -115,24 +122,64 @@ class Kitsune
     }
 
     /**
-     * Configure the "ViewFinder" to resolve
+     * Configure the "ViewFinder" to resolve every view with Kitsune's dynamically registered source paths.
      *
-     * @param  array  $viewPaths
+     * @param  array  $viewSourcePaths
      * @return bool
      */
-    protected function setViewFinderPaths(array $viewPaths): bool
+    protected function setViewFinderPaths(array $viewSourcePaths): bool
     {
-        $availablePaths = $this->filterPaths($viewPaths);
-
-        // Only update paths if something changed, otherwise there is no need to flush already resolved views.
-        if (array_diff($availablePaths, $this->viewFinder->getPaths())) {
-            // Flush resolved views, as changing the paths for the finder, may also change the view which gets resolved.
-            $this->viewFinder->setPaths($availablePaths)->flush();
+        if ($this->pathsHaveUpdates($viewSourcePaths, $this->viewFinder->getPaths())) {
+            // Update the global view source paths which are used on a global scale and flush resolved views,
+            // as changing the paths for the finder, may also change the view which gets resolved
+            // for a specific view name.
+            $this->viewFinder->setPaths($viewSourcePaths)->flush();
 
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Configure the "ViewFinder" with the packages namespace and the resolvable source paths.
+     *
+     * @param  array  $viewSourcePaths
+     * @return bool
+     */
+    protected function setViewFinderNamespacedPaths(array $viewSourcePaths): bool
+    {
+        if ($this->pathsHaveUpdates($viewSourcePaths, $this->namespacePaths)) {
+            // Set the view source paths for the package namespace.
+            $this->viewFinder->replaceNamespace(static::VIEW_NAMESPACE, $viewSourcePaths);
+
+            // Flush resolved views, as changing the paths for the finder,
+            // may also change the view which gets resolved for a specific view name.
+            $this->viewFinder->flush();
+
+            // Cache the current paths for the given namespace, as hint related methods are not guaranteed by the
+            // ViewFinderInterface, but we don't want to replace and flush the views if there is no change.
+            $this->namespacePaths = $viewSourcePaths;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the paths have been updated by comparing them after sorting.
+     *
+     * @param $newPaths
+     * @param $oldPaths
+     * @return bool
+     */
+    protected function pathsHaveUpdates($newPaths, $oldPaths): bool
+    {
+        sort($newPaths);
+        sort($oldPaths);
+
+        return $newPaths !== $oldPaths;
     }
 
     /**
@@ -173,7 +220,7 @@ class Kitsune
             }
         }
 
-        return array_merge($viewPaths, $sourcePaths);
+        return $this->filterPaths(array_merge($viewPaths, $sourcePaths));
     }
 
     /**

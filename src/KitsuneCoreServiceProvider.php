@@ -17,9 +17,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
             $this->publishConfig();
         }
 
-        if (config('kitsune.core.autorun')) {
-            app('kitsune')->refreshViewSources();
-        }
+        app('kitsune')->refreshViewSources();
     }
 
     /**

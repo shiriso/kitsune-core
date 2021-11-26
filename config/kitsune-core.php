@@ -16,23 +16,23 @@ return [
      |
      */
     'helper' => Kitsune::class,
+
     /*
      |--------------------------------------------------------------------------
      | Autorun
      |--------------------------------------------------------------------------
-     | Defines if Kitsune will customise the view paths automatically
-     | when booting the application.
+     | Defines if Kitsune will customise the view paths on a global scope.
      |
-     | If you want to enable it for your entire site or want it enabled
-     | as default with the option to override it for specific routes,
-     | set the autorun option to true.
+     | If you want to apply the override possibility for every view name
+     | to be resolved on a global scope without a specific prefix.
      |
-     | This behaviour can be disabled, if you only want customised views
-     | for specific routes / parts of your website. You could use the
-     | KitsuneMiddleware for example, to set a different layout only
-     | only for your administration-area without affecting your
-     | usual publicly available site.
+     | This means that you do not need to adjust any paths inside your
+     | application and overrides will be applied whenever possible.
+     |
+     | Namespaced access will always be available, if you only want Kitsune
+     | to be used for specific templates. Simply prefix your view's name
+     | by "kitsune::" and overrides will be enabled for that specific view.
      |
      */
-    'autorun' => env('KITSUNE_CORE_AUTORUN', true),
+    'global' => env('KITSUNE_CORE_GLOBAL', false),
 ];
