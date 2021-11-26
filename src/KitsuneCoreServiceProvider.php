@@ -57,6 +57,9 @@ class KitsuneCoreServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Publish the config files.
+     */
     protected function publishConfig()
     {
         $this->publishes([
