@@ -1,0 +1,53 @@
+{
+  "name": "shiriso/kitsune-core",
+  "description": "Customise Blade with by adjusting source paths, while allowing fallbacks and switch on demand.",
+  "keywords": [
+    "laravel",
+    "components",
+    "blade",
+    "theme",
+    "views"
+  ],
+  "homepage": "https://github.com/shiriso/kitsune-core",
+  "license": "MIT",
+  "type": "library",
+  "support": {
+    "issues": "https://github.com/shiriso/kitsune-core/issues",
+    "source": "https://github.com/shiriso/kitsune-core"
+  },
+  "authors": [
+    {
+      "name": "Shiriso",
+      "email": "shiriso1801@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "laravel/framework": "^8.52",
+    "illuminate/support": "^8.0",
+    "php": "^8.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^6.0",
+    "phpunit/phpunit": "^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Shiriso\\Kitsune\\Core\\": "src"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit",
+    "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Shiriso\\Kitsune\\Core\\KitsuneCoreServiceProvider"
+      ]
+    }
+  }
+}
