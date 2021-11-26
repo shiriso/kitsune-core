@@ -13,6 +13,7 @@ class Kitsune
 
     public const VIEW_NAMESPACE = 'kitsune';
 
+    protected ?bool $useGlobalMode;
     protected ?string $activeLayout;
     protected array $extraSourceRepositories = [];
     protected array $namespacePaths = [];
@@ -34,9 +35,47 @@ class Kitsune
     {
         $derivedSourcePaths = $this->compileViewPathDerivatives(Arr::wrap(config('view.paths')));
 
-        $updatedGlobalPaths = config('kitsune.core.global') && $this->setViewFinderPaths($derivedSourcePaths);
+        $updatedGlobalPaths = $this->globalModeIsEnabled() && $this->setViewFinderPaths($derivedSourcePaths);
 
         return $this->setViewFinderNamespacedPaths($derivedSourcePaths) || $updatedGlobalPaths;
+    }
+
+    /**
+     * Check if global mode is enabled.
+     *
+     * @return bool
+     */
+    public function globalModeIsEnabled(): bool
+    {
+        return $this->useGlobalMode ??= config('kitsune.core.global');
+    }
+
+    /**
+     * Enable Kitsune's global mode and refresh the sources if necessary.
+     *
+     * @return $this
+     */
+    public function enableGlobalMode(): static
+    {
+        if(!$this->useGlobalMode) {
+            $this->useGlobalMode = true;
+
+            $this->refreshViewSources();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Disable Kitsune's global mode.
+     *
+     * @return $this
+     */
+    public function disableGlobalMode(): static
+    {
+        $this->useGlobalMode = false;
+
+        return $this;
     }
 
     /**
