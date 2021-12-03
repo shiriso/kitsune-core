@@ -34,7 +34,10 @@
   "autoload": {
     "psr-4": {
       "Shiriso\\Kitsune\\Core\\": "src"
-    }
+    },
+    "files": [
+      "src/Helpers/array.php"
+    ]
   },
   "scripts": {
     "test": "vendor/bin/phpunit",

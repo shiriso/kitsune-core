@@ -8,7 +8,7 @@ class KitsuneMiddleware
 {
     public function handle($request, Closure $next, $layout = null)
     {
-        if($layout) {
+        if ($layout) {
             app('kitsune')->setActiveLayout($layout);
         } else {
             app('kitsune')->refreshViewSources();

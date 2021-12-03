@@ -2,7 +2,7 @@
 
 namespace Shiriso\Kitsune\Core;
 
-use Shiriso\Kitsune\Core\Concerns\DefinesPriority;
+use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
 use Shiriso\Kitsune\Core\Exceptions\InvalidPriorityException;
 
 class KitsunePriority implements DefinesPriority

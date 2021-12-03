@@ -4,19 +4,51 @@ namespace Shiriso\Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
+use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
 use Shiriso\Kitsune\Core\Exceptions\MissingBasePathException;
 
-abstract class SourcePathRepository
+class SourceRepository implements IsSourceRepository
 {
-    protected array $sourcePaths;
-
     /**
      * Creates a new repository for the given alias.
      */
-    public function __construct(protected string $alias, array $sourcePaths = null, protected ?string $basePath = null)
+    public function __construct(
+        protected string $alias,
+        protected ?string $basePath = null,
+        protected ?array $sourcePaths = null,
+        protected ?DefinesPriority $priority = null
+    ) {
+        $this->basePath ??= $this->getBasePath();
+        $this->sourcePaths ??= $this->getDefaultPaths();
+        $this->priority ??= app('kitsune.helper')->getPriorityDefault('sources');
+    }
+
+    /**
+     * Set a new priority.
+     *
+     * @param  DefinesPriority  $priority
+     * @return bool
+     */
+    public function setPriority(DefinesPriority $priority): bool
     {
-        $this->sourcePaths = $sourcePaths ?? $this->getDefaultPaths();
-        $this->basePath = $this->getBasePath();
+        if($this->priority !== $priority) {
+            $this->priority = $priority;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the current priority.
+     *
+     * @return DefinesPriority
+     */
+    public function getPriority(): DefinesPriority
+    {
+        return $this->priority;
     }
 
     /**
@@ -25,9 +57,9 @@ abstract class SourcePathRepository
      * @param  string  $sourcePath
      * @return bool
      */
-    public function prependSource(string $sourcePath): bool
+    public function prependPath(string $sourcePath): bool
     {
-        return $this->addSource($sourcePath, true);
+        return $this->addPath($sourcePath, true);
     }
 
     /**
@@ -37,7 +69,7 @@ abstract class SourcePathRepository
      * @param  bool  $prepend
      * @return bool
      */
-    public function addSource(string $sourcePath, bool $prepend = false): bool
+    public function addPath(string $sourcePath, bool $prepend = false): bool
     {
         if (!in_array($sourcePath, $this->sourcePaths, true)) {
             $prepend ? array_unshift($this->sourcePaths, $sourcePath) : $this->sourcePaths[] = $sourcePath;
@@ -53,7 +85,7 @@ abstract class SourcePathRepository
      *
      * @return array
      */
-    public function getSourcePaths(): array
+    public function getPaths(): array
     {
         $basePath = $this->getBasePath();
 
@@ -76,11 +108,9 @@ abstract class SourcePathRepository
      * @return string
      * @throws MissingBasePathException
      */
-    protected function getBasePath(): string
+    public function getBasePath(): string
     {
-        $basePath = $this->basePath ?? config(sprintf('kitsune.view.extra_sources.%s.source', $this->alias));
-
-        if ($basePath) {
+        if ($basePath = $this->basePath ?? config(sprintf('kitsune.view.sources.%s.base', $this->alias))) {
             return Str::finish($basePath, '/');
         }
 
@@ -94,6 +124,6 @@ abstract class SourcePathRepository
      */
     protected function getDefaultPaths(): array
     {
-        return $this->alias ? Arr::wrap(config(sprintf('kitsune.view.extra_sources.%s.paths', $this->alias), [])) : [];
+        return Arr::wrap(config(sprintf('kitsune.view.sources.%s.paths', $this->alias), []));
     }
 }

@@ -2,7 +2,10 @@
 
 namespace Shiriso\Kitsune\Core;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
+use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneHelper;
+use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneHelperException;
 use Shiriso\Kitsune\Core\Middleware\KitsuneGlobalModeMiddleware;
 use Shiriso\Kitsune\Core\Middleware\KitsuneMiddleware;
 
@@ -19,7 +22,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
             $this->publishConfig();
         }
 
-        app('kitsune')->refreshViewSources();
+        app('kitsune');//->refreshViewSources();
     }
 
     /**
@@ -32,6 +35,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/kitsune-core.php', 'kitsune.core');
         $this->mergeConfigFrom(__DIR__.'/../config/kitsune-view.php', 'kitsune.view');
 
+        $this->registerHelpers();
         $this->registerKitsune();
         $this->registerMiddleware();
     }
@@ -43,19 +47,28 @@ class KitsuneCoreServiceProvider extends ServiceProvider
      */
     public function provides(): array
     {
-        return ['kitsune'];
+        return ['kitsune', 'kitsune.helper', 'kitsune.manager'];
     }
 
     /**
-     * Register Kitsune as a singleton.
+     * Register Kitsune's Services to the application.
      *
      * @return void
+     * @throws InvalidKitsuneHelperException
      */
     protected function registerKitsune()
     {
-        $this->app->singleton('kitsune', function () {
-            return new (config('kitsune.core.helper', Kitsune::class))();
-        });
+        if (!is_a(
+            $helperClass = config('kitsune.core.service.helper', Kitsune::class),
+            ProvidesKitsuneHelper::class,
+            true
+        )) {
+            throw new InvalidKitsuneHelperException($helperClass);
+        }
+
+        $this->app->singleton('kitsune.helper', $helperClass);
+        $this->app->singleton('kitsune', app('kitsune.helper')->getCoreClass());
+        $this->app->singleton('kitsune.manager', app('kitsune.helper')->getManagerClass());
     }
 
     /**
@@ -68,6 +81,13 @@ class KitsuneCoreServiceProvider extends ServiceProvider
         app('router')
             ->aliasMiddleware('kitsune', KitsuneMiddleware::class)
             ->aliasMiddleware('kitsune.global', KitsuneGlobalModeMiddleware::class);
+    }
+
+    protected function registerHelpers()
+    {
+        Arr::macro('mapWithKeys', function (array $array, callable $callable) {
+            return array_map_with_keys($callable, $array);
+        });
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Concerns;
+namespace Shiriso\Kitsune\Core\Contracts;
 
 interface DefinesPriority
 {
