@@ -142,11 +142,15 @@ class KitsuneHelper implements IsKitsuneHelper
     /**
      * Retrieves the default priority for a given type.
      *
-     * @param  string  $type
+     * @param  string|DefinesPriority  $type
      * @return DefinesPriority
      */
-    public function getPriorityDefault(string $type): DefinesPriority
+    public function getPriorityDefault(string|DefinesPriority $type): DefinesPriority
     {
+        if(is_a($type, DefinesPriority::class)) {
+            return $type;
+        }
+
         if ($priority = config('kitsune.core.priority.defaults.'.$type)) {
             return is_a($priority, DefinesPriority::class) ? $priority : $this->getPriorityDefault($priority);
         }
