@@ -4,7 +4,7 @@ namespace Shiriso\Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
-use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneHelper;
+use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
 use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneHelperException;
 use Shiriso\Kitsune\Core\Middleware\KitsuneGlobalModeMiddleware;
 use Shiriso\Kitsune\Core\Middleware\KitsuneMiddleware;
@@ -60,7 +60,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
     {
         if (!is_a(
             $helperClass = config('kitsune.core.service.helper', Kitsune::class),
-            ProvidesKitsuneHelper::class,
+            IsKitsuneHelper::class,
             true
         )) {
             throw new InvalidKitsuneHelperException($helperClass);
