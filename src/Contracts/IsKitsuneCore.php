@@ -2,21 +2,15 @@
 
 namespace Shiriso\Kitsune\Core\Contracts;
 
-interface ProvidesKitsuneCore
+interface IsKitsuneCore
 {
+
     /**
-     * Refreshes all Namespaces currently defined in the NamespaceManager.
+     * Configures the view sources accordingly to Kitsune.
      *
      * @return bool
      */
     public function refreshViewSources(): bool;
-
-    /**
-     * Resets the global ViewFinder-Paths to the application's default.
-     *
-     * @return bool
-     */
-    public function resetGlobalViewFinder(): bool;
 
     /**
      * Configure the global ViewFinder-Paths accordingly to the given namespace.
@@ -27,10 +21,11 @@ interface ProvidesKitsuneCore
     public function configureGlobalViewFinder(string $namespace): bool;
 
     /**
-     * Configure the sources to the ViewFinder-Paths accordingly to the given namespace.
+     * Resets the global ViewFinder-Paths to the application's default.
      *
-     * @param  string  $namespace
      * @return bool
      */
+    public function resetGlobalViewFinder(): bool;
+
     public function configureNamespaceViewFinder(string $namespace): bool;
 }

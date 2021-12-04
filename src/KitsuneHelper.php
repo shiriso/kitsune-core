@@ -6,11 +6,12 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
+use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
+use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
+use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
 use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
-use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneCore;
-use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneHelper;
-use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneManager;
+use Shiriso\Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
 use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
 use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
 use Shiriso\Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
@@ -18,8 +19,10 @@ use Shiriso\Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
 use Shiriso\Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
 use Shiriso\Kitsune\Core\Exceptions\PriorityDefinitionNotEnumException;
 
-class KitsuneHelper implements ProvidesKitsuneHelper
+class KitsuneHelper implements IsKitsuneHelper
 {
+    protected ?array $defaultSources = null;
+
     /**
      * Filter given paths based on their existing directory in the filesystem.
      *
@@ -41,7 +44,7 @@ class KitsuneHelper implements ProvidesKitsuneHelper
     {
         if (is_a(
             $coreClass = config('kitsune.core.service.class', Kitsune::class),
-            ProvidesKitsuneCore::class,
+            IsKitsuneCore::class,
             true
         )) {
             return $coreClass;
@@ -60,7 +63,7 @@ class KitsuneHelper implements ProvidesKitsuneHelper
     {
         if (is_a(
             $managerClass = config('kitsune.core.service.manager', KitsuneManager::class),
-            ProvidesKitsuneManager::class,
+            IsKitsuneManager::class,
             true
         )) {
             return $managerClass;
@@ -228,28 +231,58 @@ class KitsuneHelper implements ProvidesKitsuneHelper
     }
 
     /**
-     * Returns a default configuration for internally used sources,
-     * for cases where the default configuration got edited in
-     * a way, that the default sources do not exist anymore.
+     * Returns a combined list of configured default sources and sources
+     * which Kitsune uses on an internal matter to provide basic
+     * functionalities usually required by most packages.
      *
-     * As these are the most common sources to be used by a
-     * package, we want to guarantee that these exist.
+     * In case you need to modify one these values, the most
+     * convenient way might be, publishing the config files
+     * and adjust the specific keys in there or add new
+     * sources which are required for your application.
      *
      * @return array
      */
-    public function getDefaultSourceConfiguration(): array
+    public function getDefaultSourceConfigurations(): array
     {
-        return [
-            'published' => [
-                'basePath' => resource_path('views/vendor'),
-                'priority' => $this->getPriorityDefault('published'),
-                'sourcePaths' => [],
+        return $this->defaultSources ??= array_replace_recursive(
+            [
+                'published' => [
+                    'basePath' => resource_path('views/vendor'),
+                    'priority' => 'published',
+                    'sourcePaths' => [],
+                ],
+                'vendor' => [
+                    'basePath' => base_path('vendor'),
+                    'priority' => 'vendor',
+                    'sourcePaths' => [],
+                ],
             ],
-            'vendor' => [
-                'basePath' => base_path('vendor'),
-                'priority' => $this->getPriorityDefault('vendor'),
-                'sourcePaths' => [],
-            ],
-        ];
+            array_map([$this, 'toCamelKeys'], config('kitsune.view.sources', []))
+        );
+    }
+
+
+    /**
+     * Returns an array with all existing default source configurations
+     * as defined in the KitsuneHelper
+     *
+     * @return array
+     */
+    public function getAvailableDefaultSourceConfigurations(): array
+    {
+        return array_keys($this->getDefaultSourceConfigurations());
+    }
+
+    /**
+     * Retrieve the default configuration for a specific source.
+     *
+     * @param  string  $source
+     * @return array
+     * @throws InvalidDefaultSourceConfiguration
+     */
+    public function getDefaultSourceConfiguration(string $source): array
+    {
+        return $this->getAvailableDefaultSourceConfigurations()[$source]
+            ?? throw new InvalidDefaultSourceConfiguration($source);
     }
 }

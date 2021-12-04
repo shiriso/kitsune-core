@@ -2,9 +2,9 @@
 
 namespace Shiriso\Kitsune\Core\Concerns;
 
-use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneCore;
-use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneHelper;
-use Shiriso\Kitsune\Core\Contracts\ProvidesKitsuneManager;
+use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
+use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
+use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
 
 /**
  * This trait only offers basic functionalities to request Kitsune's services in a way
@@ -22,9 +22,9 @@ trait UtilisesKitsune
     /**
      * Returns Kitsune core from the container.
      *
-     * @return ProvidesKitsuneCore
+     * @return IsKitsuneCore
      */
-    public function getKitsuneCore(): ProvidesKitsuneCore
+    public function getKitsuneCore(): IsKitsuneCore
     {
         return app('kitsune');
     }
@@ -32,9 +32,9 @@ trait UtilisesKitsune
     /**
      * Returns Kitsune helper from the container.
      *
-     * @return ProvidesKitsuneHelper
+     * @return IsKitsuneHelper
      */
-    public function getKitsuneHelper(): ProvidesKitsuneHelper
+    public function getKitsuneHelper(): IsKitsuneHelper
     {
         return app('kitsune.helper');
     }
@@ -42,9 +42,9 @@ trait UtilisesKitsune
     /**
      * Returns Kitsune manager from the container.
      *
-     * @return ProvidesKitsuneManager
+     * @return IsKitsuneManager
      */
-    public function getKitsuneManager(): ProvidesKitsuneManager
+    public function getKitsuneManager(): IsKitsuneManager
     {
         return app('kitsune.manager');
     }

@@ -59,22 +59,11 @@ return [
      | configured at the 'paths' key inside your config/view.php.
      |
      | Key: Used alias for your source
-     | "base": Base-Path for your source
-     | "paths": Default paths which will always be used
+     | "base_path": Base-Path for your source
+     | "source_paths": Default paths which will always be used
      | "priority": A higher priority will result in views taking
      |             precedence over those in a lower priority.
      |
      */
-    'sources' => [
-        'published' => [
-            'base' => resource_path('views/vendor'),
-            'paths' => [],
-            'priority' => 'high',
-        ],
-        'vendor' => [
-            'base' => base_path('vendor'),
-            'paths' => [],
-            'priority' => 'low',
-        ],
-    ],
+    'sources' => [],
 ];
