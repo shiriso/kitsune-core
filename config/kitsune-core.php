@@ -123,7 +123,7 @@ return [
              | The affected paths are usually configured at "view.paths".
              |
              */
-            'laravel' => new KitsunePriority('important'),
+            'laravel' => 'important',
 
             /*
              |--------------------------------------------------------------------------
@@ -140,7 +140,7 @@ return [
              | will only affect the order of various sources in the namespace.
              |
              */
-            'namespaces' => new KitsunePriority('medium'),
+            'namespaces' => 'medium',
 
             /*
              |--------------------------------------------------------------------------
@@ -157,7 +157,7 @@ return [
              | will only affect the order of various sources in the namespace.
              |
              */
-            'published' => new KitsunePriority('high'),
+            'published' => 'high',
 
             /*
              |--------------------------------------------------------------------------
@@ -174,7 +174,7 @@ return [
              | will only affect the order of various sources in the namespace.
              |
              */
-            'sources' => new KitsunePriority('medium'),
+            'sources' => 'medium',
         ],
     ],
 

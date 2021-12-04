@@ -145,7 +145,7 @@ class KitsuneHelper implements ProvidesKitsuneHelper
     public function getPriorityDefault(string $type): DefinesPriority
     {
         if ($priority = config('kitsune.core.priority.defaults.'.$type)) {
-            return $priority;
+            return is_a($priority, DefinesPriority::class) ? $priority : $this->getPriorityDefault($priority);
         }
 
         $defaultPriority = match ($type) {
@@ -153,6 +153,7 @@ class KitsuneHelper implements ProvidesKitsuneHelper
             'namespace', 'source' => 'medium',
             'published' => 'high',
             'laravel' => 'important',
+            default => $type,
         };
 
         return $this->priorityDefinitionIsEnum()
@@ -231,12 +232,14 @@ class KitsuneHelper implements ProvidesKitsuneHelper
      * for cases where the default configuration got edited in
      * a way, that the default sources do not exist anymore.
      *
-     * @param  string  $type
+     * As these are the most common sources to be used by a
+     * package, we want to guarantee that these exist.
+     *
      * @return array
      */
-    public function getDefaultSourceConfiguration(string $type): array
+    public function getDefaultSourceConfiguration(): array
     {
-        return match ($type) {
+        return [
             'published' => [
                 'basePath' => resource_path('views/vendor'),
                 'priority' => $this->getPriorityDefault('published'),
@@ -244,9 +247,9 @@ class KitsuneHelper implements ProvidesKitsuneHelper
             ],
             'vendor' => [
                 'basePath' => base_path('vendor'),
-                'priority' => $this->getPriorityDefault('published'),
+                'priority' => $this->getPriorityDefault('vendor'),
                 'sourcePaths' => [],
             ],
-        };
+        ];
     }
 }

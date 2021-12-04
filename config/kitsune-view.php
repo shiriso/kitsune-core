@@ -37,11 +37,16 @@ return [
      |             precedence over those in a lower priority.
      |
      */
-    // TODO: POTENTIALLY MOVE TO NESTED STRUCTURE, SO ITS EXTENDABLE BY CONFIG INSTEAD OF USING A PROGRAMMATIC APPROACH
+    /*
+     * TODO: POTENTIALLY MOVE TO NESTED STRUCTURE, SO ITS EXTENDABLE BY CONFIG INSTEAD OF USING A PROGRAMMATIC
+     * APPROACH AS MERGING DOES NOT WORK ON A NESTED LAYER, WE WILL SIMPLY ADD A NEW KEY AT WHICH ENTIRE
+     * NAMESPACES CAN BE DEFINED FOR THE ENTIRE APP INCLUDING SOURCES AND PATHS.
+     */
     'namespaces' => [
         'kitsune',
         'kitsune-forms' => [
             'source_paths' => base_path('vendor/shiriso/kitsune-forms'),
+            'priority' => 'important',
         ],
     ],
 
@@ -60,17 +65,16 @@ return [
      |             precedence over those in a lower priority.
      |
      */
-    // TODO: POTENTIALLY MOVE TO NESTED STRUCTURE, SO ITS EXTENDABLE BY CONFIG INSTEAD OF USING A PROGRAMMATIC APPROACH
     'sources' => [
         'published' => [
             'base' => resource_path('views/vendor'),
             'paths' => [],
-            'priority' => new KitsunePriority('high'),
+            'priority' => 'high',
         ],
         'vendor' => [
             'base' => base_path('vendor'),
             'paths' => [],
-            'priority' => new KitsunePriority('low'),
+            'priority' => 'low',
         ],
     ],
 ];
