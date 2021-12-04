@@ -140,7 +140,7 @@ return [
              | will only affect the order of various sources in the namespace.
              |
              */
-            'namespaces' => 'medium',
+            'namespace' => 'medium',
 
             /*
              |--------------------------------------------------------------------------
@@ -174,7 +174,7 @@ return [
              | will only affect the order of various sources in the namespace.
              |
              */
-            'sources' => 'medium',
+            'source' => 'medium',
         ],
     ],
 

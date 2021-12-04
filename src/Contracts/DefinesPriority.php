@@ -9,7 +9,7 @@ interface DefinesPriority
      *
      * @return int
      */
-    public function getPriorityValue(): int;
+    public function getValue(): int;
 
     /**
      * Get the numeric representation of the priority for cases it should be higher than the default.
@@ -17,5 +17,5 @@ interface DefinesPriority
      *
      * @return int
      */
-    public function getIncreasedPriorityValue(): int;
+    public function getIncreasedValue(): int;
 }

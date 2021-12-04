@@ -253,12 +253,12 @@ class KitsuneHelper implements IsKitsuneHelper
                 'published' => [
                     'basePath' => resource_path('views/vendor'),
                     'priority' => 'published',
-                    'sourcePaths' => [],
+                    'paths' => [],
                 ],
                 'vendor' => [
                     'basePath' => base_path('vendor'),
                     'priority' => 'vendor',
-                    'sourcePaths' => [],
+                    'paths' => [],
                 ],
             ],
             array_map([$this, 'toCamelKeys'], config('kitsune.view.sources', []))

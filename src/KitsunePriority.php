@@ -29,13 +29,13 @@ class KitsunePriority implements DefinesPriority
         $this->priority = $priority;
     }
 
-    public function getPriorityValue(): int
+    public function getValue(): int
     {
         return $this->priorities[$this->priority];
     }
 
-    public function getIncreasedPriorityValue(): int
+    public function getIncreasedValue(): int
     {
-        return $this->getPriorityValue() + $this->layoutIncrement;
+        return $this->getValue() + $this->layoutIncrement;
     }
 }

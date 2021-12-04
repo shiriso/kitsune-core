@@ -13,6 +13,7 @@ return [
      |
      | For available layouts check the resources' directory
      | of the included package or your own derivatives.
+     |
      */
     'layout' => env('KITSUNE_VIEW_LAYOUT'),
 
@@ -28,7 +29,7 @@ return [
      |
      | Available Settings:
      | "layout": Define a layout to be used only within the namespace
-     | "source_paths": Defines additional paths which will be
+     | "paths": Defines additional paths which will be
      |                 added to the namespace.
      | "add_defaults": Usually Laravel's source will not be added,
      |                 but if you desire to do so, you can
@@ -44,10 +45,10 @@ return [
      */
     'namespaces' => [
         'kitsune',
-        'kitsune-forms' => [
-            'source_paths' => base_path('vendor/shiriso/kitsune-forms'),
+        /*'kitsune-forms' => [
+            'paths' => base_path('vendor/shiriso/kitsune-forms'),
             'priority' => 'important',
-        ],
+        ],*/
     ],
 
     /*
@@ -60,7 +61,7 @@ return [
      |
      | Key: Used alias for your source
      | "base_path": Base-Path for your source
-     | "source_paths": Default paths which will always be used
+     | "paths": Default paths which will always be used
      | "priority": A higher priority will result in views taking
      |             precedence over those in a lower priority.
      |

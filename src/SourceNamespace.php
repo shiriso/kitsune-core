@@ -19,24 +19,56 @@ class SourceNamespace implements IsSourceNamespace
     public function __construct(
         protected string $namespace,
         protected bool $addDefaults = false,
-        protected ?DefinesPriority $priority = null,
+        protected string|DefinesPriority|null $priority = null,
         protected ?string $layout = null,
-        protected string|array $sourcePaths = []
+        protected string|array $paths = []
     ) {
-        $this->priority ??= $this->getKitsuneHelper()->getPriorityDefault('namespace');
-        $this->sourcePaths = Arr::wrap($this->sourcePaths);
+        $this->setPriority($this->priority ?? 'namespace');
+
+        $this->paths = Arr::wrap($this->paths);
 
         $this->initializeConfiguredExtraSources();
+    }
+
+    /**
+     * Set a new priority.
+     *
+     * @param  string|DefinesPriority  $priority
+     * @return bool
+     */
+    public function setPriority(string|DefinesPriority $priority): bool
+    {
+        if(is_string($priority)) {
+            $priority = $this->getKitsuneHelper()->getPriorityDefault($priority);
+        }
+
+        if ($this->priority->getValue() !== $priority->getValue()) {
+            $this->priority = $priority;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Retrieve the namespaces priority.
+     *
+     * @return DefinesPriority
+     */
+    public function getPriority(): DefinesPriority
+    {
+        return $this->priority;
     }
 
     /**
      * Set a priority for the given source.
      *
      * @param  string  $source
-     * @param  DefinesPriority  $priority
+     * @param  string|DefinesPriority  $priority
      * @return $this
      */
-    public function setSourcePriority(string $source, DefinesPriority $priority): static
+    public function setSourcePriority(string $source, string|DefinesPriority $priority): static
     {
         $this->hasUpdates = $this->hasUpdates || $this->getSource($source)->setPriority($priority);
 
@@ -89,15 +121,15 @@ class SourceNamespace implements IsSourceNamespace
      *
      * @param  string  $sourceRepository
      * @param  string|null  $basePath
-     * @param  array|null  $sourcePaths
-     * @param  DefinesPriority|null  $priority
+     * @param  array|null  $paths
+     * @param  string|DefinesPriority|null  $priority
      * @return SourceRepository
      */
     public function addSource(
         string $sourceRepository,
         string $basePath = null,
-        array $sourcePaths = null,
-        DefinesPriority $priority = null,
+        array $paths = null,
+        string|DefinesPriority|null $priority = null,
     ): SourceRepository {
         $this->setUpdateState();
 
@@ -132,32 +164,32 @@ class SourceNamespace implements IsSourceNamespace
     /**
      * Prepend a source path for the given repository.
      *
-     * @param  string  $sourcePath
+     * @param  string  $path
      * @param  string|array  $sourceRepository
      * @return bool
      */
-    public function prependPathToSource(string $sourcePath, string|array $sourceRepository): bool
+    public function prependPathToSource(string $path, string|array $sourceRepository): bool
     {
-        return $this->addPathToSource($sourcePath, $sourceRepository, true);
+        return $this->addPathToSource($path, $sourceRepository, true);
     }
 
     /**
      * Register a source path for the given repository.
      *
-     * @param  string  $sourcePath
+     * @param  string  $path
      * @param  string|array  $sourceRepository
      * @param  bool  $prepend
      * @return bool
      */
-    public function addPathToSource(string $sourcePath, string|array $sourceRepository, bool $prepend = false): bool
+    public function addPathToSource(string $path, string|array $sourceRepository, bool $prepend = false): bool
     {
         $repository = $this->getSource(...Arr::wrap($sourceRepository));
 
-        if ($prepend ? $repository->prependPath($sourcePath) : $repository->addPath($sourcePath)) {
+        if ($prepend ? $repository->prependPath($path) : $repository->addPath($path)) {
             $this->setUpdateState();
 
             // TODO: USE KITSUNE
-            return $this->refreshViewSources();
+            //return $this->refreshViewSources();
         }
 
         return false;
@@ -169,8 +201,8 @@ class SourceNamespace implements IsSourceNamespace
      */
     protected function initializeConfiguredExtraSources(): void
     {
-        foreach (array_keys(config('kitsune.view.sources', [])) as $alias) {
-            $this->addSource($alias);
+        foreach ($this->getKitsuneHelper()->getDefaultSourceConfigurations() as $alias => $configuration) {
+            $this->addSource($alias, ...$configuration);
         }
     }
 
