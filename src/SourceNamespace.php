@@ -27,7 +27,7 @@ class SourceNamespace implements IsSourceNamespace
 
         $this->setPriority($this->priority ?? 'namespace');
 
-        $this->initializeConfiguredExtraSources();
+        $this->initializeConfiguredSources();
     }
 
     /**
@@ -52,7 +52,7 @@ class SourceNamespace implements IsSourceNamespace
     }
 
     /**
-     * Retrieve the namespaces priority.
+     * Get the priority of the namespace.
      *
      * @return DefinesPriority
      */
@@ -185,11 +185,13 @@ class SourceNamespace implements IsSourceNamespace
     {
         $repository = $this->getSource(...Arr::wrap($sourceRepository));
 
-        if ($prepend ? $repository->prependPath($path) : $repository->addPath($path)) {
+        if ($repository->addPath($path, $prepend)) {
             $this->setUpdateState();
 
             // TODO: USE KITSUNE
             //return $this->refreshViewSources();
+
+            return true;
         }
 
         return false;
@@ -199,7 +201,7 @@ class SourceNamespace implements IsSourceNamespace
      * Initializes all source repositories for the configured extra sources,
      * to make sure these are included even when nothing was dynamically registered.
      */
-    protected function initializeConfiguredExtraSources(): void
+    protected function initializeConfiguredSources(): void
     {
         foreach ($this->getKitsuneHelper()->getDefaultSourceConfigurations() as $alias => $configuration) {
             $this->addSource($alias, ...$configuration);
@@ -207,50 +209,70 @@ class SourceNamespace implements IsSourceNamespace
     }
 
     /**
-     * Compile a list of possible view source paths sorted by their priority.
+     * Get a compiled list of paths from the namespace, sources and potentially Laravel's application
+     * paths with derivatives for the application layout and the namespace's layout.
      *
-     * @param  bool  $globalPaths  When globalPaths is activated the laravel default paths will be included independent of the namespace configuration
+     * @param  bool  $addDefaultPaths  When true, it will add the applications default paths from Laravel
      * @return array
      */
-    public function getPathsNamespacePaths(bool $globalPaths = false): array
+    public function getPathsWithDerivatives(bool $addDefaultPaths = false): array
     {
-        $laravelPaths = ($globalPaths || $this->addDefaults)
-            ? $this->getKitsuneHelper()->getLaravelViewPathsByPriority() : [];
-
-        $applicationLayout = $this->getKitsuneManager();
+        $sourcePathDerivatives = [];
+        $applicationLayout = $this->getKitsuneManager()->getApplicationLayout();
         $namespaceLayout = $this->getLayout();
+        $prioritizedSources = $this->getPaths();
 
-        foreach ($this->sourceRepositories as $sourceRepository)
-        {
-
+        foreach (
+            $addDefaultPaths ? $this->getKitsuneHelper()->getLaravelViewPathsByPriority() : []
+            as $priorityValue => $paths
+        ) {
+            $prioritizedSources[$priorityValue] = array_merge(
+                $prioritizedSources[$priorityValue] ?? [],
+                $paths
+            );
         }
 
-        /*
-        $activeLayout = $this->getLayout();
-        $sourcePaths = $this->getSourcePaths();
+        krsort($prioritizedSources);
 
-        // TODO: USE SOURCE NAMESPACE
-        $viewPaths = [];
-
-        if ($activeLayout) {
-            foreach ($sourcePaths as $sourcePath) {
-                $viewPaths[] = sprintf('%s/%s', $sourcePath, $activeLayout);
+        foreach (Arr::flatten($prioritizedSources) as $sourcePath) {
+            if($applicationLayout) {
+                $sourcePathDerivatives[] = $sourcePath . DIRECTORY_SEPARATOR . $applicationLayout;
             }
-        }
 
-        foreach ($this->extraSourceRepositories as $sourceRepository) {
-            foreach ($sourceRepository->getSourcePaths() as $registeredVendorPath) {
-                if ($activeLayout) {
-                    $viewPaths[] = sprintf('%s/%s', $registeredVendorPath, $activeLayout);
-                }
-
-                $viewPaths[] = $registeredVendorPath;
+            if($namespaceLayout) {
+                $sourcePathDerivatives[] = $sourcePath . DIRECTORY_SEPARATOR . $namespaceLayout;
             }
+
+            $sourcePathDerivatives[] = $sourcePath;
         }
 
-        return $this->filterPaths(array_merge($viewPaths, $sourcePaths));
-        */
-        return [];
+        return $this->getKitsuneHelper()->filterPaths($sourcePathDerivatives);
+    }
+
+    /**
+     * Compile a list of possible view source paths sorted by their priority.
+     *
+     * @return array
+     */
+    public function getPaths(): array
+    {
+        if (!empty($this->sourcesByPriority) && !$this->hasUpdates) {
+            return $this->sourcesByPriority;
+        }
+
+        $prioritizedSources = [$this->getPriority()->getValue() => $this->paths];
+
+        foreach ($this->sourceRepositories as $sourceRepository) {
+            $priorityValue = $sourceRepository->getPriority()->getValue();
+            $prioritizedSources[$priorityValue] = array_merge(
+                $prioritizedSources[$priorityValue] ?? [],
+                $sourceRepository->getPaths()
+            );
+        }
+
+        $this->hasUpdates = false;
+
+        return $this->sourcesByPriority = $prioritizedSources;
     }
 
 

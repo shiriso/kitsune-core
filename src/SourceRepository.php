@@ -26,7 +26,7 @@ class SourceRepository implements IsSourceRepository
         $this->paths ??= $this->getDefaultPaths();
 
         if (!is_a($this->priority, DefinesPriority::class)) {
-            $this->priority ??= $this->getDefaultPriority($this->priority);
+            $this->priority = $this->getDefaultPriority($this->priority);
         }
     }
 
@@ -99,7 +99,7 @@ class SourceRepository implements IsSourceRepository
     {
         $basePath = $this->getBasePath();
 
-        return [$this->getPriority()->getValue() => array_map(fn($path) => $basePath.$path, $this->paths)];
+        return array_map(fn($path) => $basePath.$path, $this->paths);
     }
 
     /**
