@@ -286,7 +286,7 @@ class KitsuneHelper implements IsKitsuneHelper
      */
     public function getDefaultSourceConfiguration(string $source): array
     {
-        return $this->getAvailableDefaultSourceConfigurations()[$source]
+        return $this->getDefaultSourceConfigurations()[$source]
             ?? throw new InvalidDefaultSourceConfiguration($source);
     }
 
