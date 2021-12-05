@@ -130,4 +130,11 @@ interface IsKitsuneHelper
      * @return bool
      */
     public function pathsHaveUpdates(array $newPaths, ?array $oldPaths): bool;
+
+    /**
+     * Get the paths registered in Laravel's default config index by the default priority value.
+     *
+     * @return array
+     */
+    public function getLaravelViewPathsByPriority(): array;
 }

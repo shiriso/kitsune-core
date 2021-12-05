@@ -289,4 +289,14 @@ class KitsuneHelper implements IsKitsuneHelper
         return $this->getAvailableDefaultSourceConfigurations()[$source]
             ?? throw new InvalidDefaultSourceConfiguration($source);
     }
+
+    /**
+     * Get the paths registered in Laravel's default config index by the default priority value.
+     *
+     * @return array
+     */
+    public function getLaravelViewPathsByPriority(): array
+    {
+        return [$this->getPriorityDefault('laravel')->getValue() => config('view.paths')];
+    }
 }

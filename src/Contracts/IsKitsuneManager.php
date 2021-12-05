@@ -57,4 +57,19 @@ interface IsKitsuneManager
      * @return array
      */
     public function getRegisteredNamespaces(): array;
+
+    /**
+     * Get the layout which is currently configured for the application.
+     *
+     * @return string|null
+     */
+    public function getApplicationLayout(): ?string;
+
+    /**
+     * Set the layout for the application.
+     *
+     * @param  string|null  $layout
+     * @return bool
+     */
+    public function setApplicationLayout(?string $layout): bool;
 }

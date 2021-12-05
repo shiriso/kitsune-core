@@ -33,13 +33,13 @@ class SourceRepository implements IsSourceRepository
     /**
      * Set a new priority.
      *
-     * @param  string|DefinesPriority  $priority
+     * @param  string|DefinesPriority|null  $priority
      * @return bool
      */
-    public function setPriority(string|DefinesPriority $priority): bool
+    public function setPriority(string|DefinesPriority|null $priority): bool
     {
-        if(is_string($priority)) {
-            $priority = $this->getKitsuneHelper()->getPriorityDefault($priority);
+        if(!is_a($priority, DefinesPriority::class)) {
+            $priority = $this->getDefaultPriority($priority);
         }
 
         if ($this->priority->getValue() !== $priority->getValue()) {
@@ -99,7 +99,7 @@ class SourceRepository implements IsSourceRepository
     {
         $basePath = $this->getBasePath();
 
-        return array_map(fn($path) => $basePath.$path, $this->paths);
+        return [$this->getPriority()->getValue() => array_map(fn($path) => $basePath.$path, $this->paths)];
     }
 
     /**

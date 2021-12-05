@@ -12,7 +12,7 @@ class SourceNamespace implements IsSourceNamespace
     use UtilisesKitsune;
 
     protected ?KitsuneManager $manager;
-    protected array $extraSourceRepositories = [];
+    protected array $sourceRepositories = [];
     protected array $sourcesByPriority = [];
     protected bool $hasUpdates = true;
 
@@ -23,9 +23,9 @@ class SourceNamespace implements IsSourceNamespace
         protected ?string $layout = null,
         protected string|array $paths = []
     ) {
-        $this->setPriority($this->priority ?? 'namespace');
-
         $this->paths = Arr::wrap($this->paths);
+
+        $this->setPriority($this->priority ?? 'namespace');
 
         $this->initializeConfiguredExtraSources();
     }
@@ -38,11 +38,11 @@ class SourceNamespace implements IsSourceNamespace
      */
     public function setPriority(string|DefinesPriority $priority): bool
     {
-        if(is_string($priority)) {
+        if (is_string($priority)) {
             $priority = $this->getKitsuneHelper()->getPriorityDefault($priority);
         }
 
-        if ($this->priority->getValue() !== $priority->getValue()) {
+        if ($this->priority?->getValue() !== $priority->getValue()) {
             $this->priority = $priority;
 
             return true;
@@ -111,7 +111,7 @@ class SourceNamespace implements IsSourceNamespace
      */
     public function getLayout(): ?string
     {
-        return $this->layout ??= config('kitsune.view.layout');
+        return $this->layout;
     }
 
     /**
@@ -133,7 +133,7 @@ class SourceNamespace implements IsSourceNamespace
     ): SourceRepository {
         $this->setUpdateState();
 
-        return $this->extraSourceRepositories[$sourceRepository] =
+        return $this->sourceRepositories[$sourceRepository] =
             new (app('kitsune.helper')->getSourceRepositoryClass())(...func_get_args());
     }
 
@@ -147,7 +147,7 @@ class SourceNamespace implements IsSourceNamespace
      */
     public function getSource(string $sourceRepository): SourceRepository
     {
-        return $this->extraSourceRepositories[$sourceRepository] ??= $this->addSource($sourceRepository);
+        return $this->sourceRepositories[$sourceRepository] ??= $this->addSource($sourceRepository);
     }
 
     /**
@@ -158,7 +158,7 @@ class SourceNamespace implements IsSourceNamespace
      */
     public function hasSource(string $sourceRepository): bool
     {
-        return array_key_exists($sourceRepository, $this->extraSourceRepositories);
+        return array_key_exists($sourceRepository, $this->sourceRepositories);
     }
 
     /**
@@ -209,10 +209,22 @@ class SourceNamespace implements IsSourceNamespace
     /**
      * Compile a list of possible view source paths sorted by their priority.
      *
+     * @param  bool  $globalPaths  When globalPaths is activated the laravel default paths will be included independent of the namespace configuration
      * @return array
      */
-    public function getPathsNamespacePaths(): array
+    public function getPathsNamespacePaths(bool $globalPaths = false): array
     {
+        $laravelPaths = ($globalPaths || $this->addDefaults)
+            ? $this->getKitsuneHelper()->getLaravelViewPathsByPriority() : [];
+
+        $applicationLayout = $this->getKitsuneManager();
+        $namespaceLayout = $this->getLayout();
+
+        foreach ($this->sourceRepositories as $sourceRepository)
+        {
+
+        }
+
         /*
         $activeLayout = $this->getLayout();
         $sourcePaths = $this->getSourcePaths();

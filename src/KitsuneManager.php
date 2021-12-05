@@ -10,14 +10,14 @@ class KitsuneManager implements IsKitsuneManager
 {
     use UtilisesKitsune;
 
-    protected ?string $globalNamespace;
-    protected ?string $globalLayout;
+    protected ?string $globalNamespace = null;
+    protected ?string $applicationLayout = null;
     protected array $namespaces = [];
 
     public function __construct()
     {
-        $this->globalNamespace = config('kitsune.core.global_mode.namespace');
-        $this->globalLayout = config('kitsune.view.layout');
+        $this->setGlobalNamespace(config('kitsune.core.global_mode.namespace'));
+        $this->setApplicationLayout(config('kitsune.view.layout'));
 
         $this->initializeNamespaces();
         //$this->initializePackages();
@@ -54,6 +54,7 @@ class KitsuneManager implements IsKitsuneManager
         return $this->globalNamespace;
     }
 
+
     /**
      * Retrieve a list of all registered namespaces.
      *
@@ -73,6 +74,33 @@ class KitsuneManager implements IsKitsuneManager
     public function getNamespace(string $namespace): IsSourceNamespace
     {
         return $this->namespaces[$namespace] ?? $this->addNamespace(...func_get_args());
+    }
+
+    /**
+     * Get the layout which is currently configured for the application.
+     *
+     * @return string|null
+     */
+    public function getApplicationLayout(): ?string
+    {
+        return $this->applicationLayout;
+    }
+
+    /**
+     * Set the layout for the application.
+     *
+     * @param  string|null  $layout
+     * @return bool
+     */
+    public function setApplicationLayout(?string $layout): bool
+    {
+        if ($this->applicationLayout !== $layout) {
+            $this->applicationLayout = $layout;
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
