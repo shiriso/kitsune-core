@@ -7,7 +7,6 @@ use Shiriso\Kitsune\Core\Exceptions\InvalidPriorityException;
 
 class KitsunePriority implements DefinesPriority
 {
-    protected int $layoutIncrement = 5;
     protected array $priorities = [
         'least' => 10,
         'low' => 20,
@@ -32,10 +31,5 @@ class KitsunePriority implements DefinesPriority
     public function getValue(): int
     {
         return $this->priorities[$this->priority];
-    }
-
-    public function getIncreasedValue(): int
-    {
-        return $this->getValue() + $this->layoutIncrement;
     }
 }
