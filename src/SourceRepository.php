@@ -6,12 +6,15 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
+use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
 use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
 use Shiriso\Kitsune\Core\Exceptions\MissingBasePathException;
 
 class SourceRepository implements IsSourceRepository
 {
     use UtilisesKitsune;
+
+    protected ?IsSourceNamespace $namespace = null;
 
     /**
      * Creates a new repository for the given alias.
@@ -28,6 +31,23 @@ class SourceRepository implements IsSourceRepository
         if (!is_a($this->priority, DefinesPriority::class)) {
             $this->priority = $this->getDefaultPriority($this->priority);
         }
+    }
+
+    /**
+     * This method will assign an internal namespace which may be used to
+     * automatically report updates of the source to the namespace.
+     *
+     * This is important to let the namespace know, that it needs to
+     * compile a new list of sources when the paths are requested.
+     *
+     * @param  IsSourceNamespace  $namespace
+     * @return SourceRepository
+     */
+    public function assignNamespace(IsSourceNamespace $namespace): static
+    {
+        $this->namespace = $namespace;
+
+        return $this;
     }
 
     /**
