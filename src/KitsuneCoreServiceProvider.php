@@ -3,9 +3,12 @@
 namespace Shiriso\Kitsune\Core;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
+use Shiriso\Kitsune\Core\Events\KitsuneNamespaceUpdated;
 use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneHelperException;
+use Shiriso\Kitsune\Core\Listeners\UpdateKitsuneForNamespace;
 use Shiriso\Kitsune\Core\Middleware\KitsuneGlobalModeMiddleware;
 use Shiriso\Kitsune\Core\Middleware\KitsuneMiddleware;
 
@@ -22,7 +25,9 @@ class KitsuneCoreServiceProvider extends ServiceProvider
             $this->publishConfig();
         }
 
-        app('kitsune');//->refreshViewSources();
+        $this->addEventListeners();
+
+        app('kitsune')->start();
     }
 
     /**
@@ -83,6 +88,11 @@ class KitsuneCoreServiceProvider extends ServiceProvider
             ->aliasMiddleware('kitsune.global', KitsuneGlobalModeMiddleware::class);
     }
 
+    /**
+     * Register additional Helpers Kitsune is using.
+     *
+     * @return void
+     */
     protected function registerHelpers()
     {
         Arr::macro('mapWithKeys', function (array $array, callable $callable) {
@@ -99,5 +109,10 @@ class KitsuneCoreServiceProvider extends ServiceProvider
             __DIR__.'/../config/kitsune-core.php' => config_path('kitsune/core.php'),
             __DIR__.'/../config/kitsune-view.php' => config_path('kitsune/view.php'),
         ], 'kitsune.config');
+    }
+
+    protected function addEventListeners()
+    {
+        Event::listen(KitsuneNamespaceUpdated::class, UpdateKitsuneForNamespace::class);
     }
 }
