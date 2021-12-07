@@ -50,7 +50,12 @@
     "laravel": {
       "providers": [
         "Shiriso\\Kitsune\\Core\\KitsuneCoreServiceProvider"
-      ]
+      ],
+      "aliases": {
+        "Kitsune": "Shiriso\\Kitsune\\Core\\Facades\\KitsuneCoreFacade",
+        "KitsuneHelper": "Shiriso\\Kitsune\\Core\\Facades\\KitsuneHelperFacade",
+        "KitsuneManager": "Shiriso\\Kitsune\\Core\\Facades\\KitsuneManagerFacade"
+      }
     }
   }
 }
