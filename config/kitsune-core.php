@@ -123,7 +123,7 @@ return [
              | The affected paths are usually configured at "view.paths".
              |
              */
-            'laravel' => 'important',
+            'laravel' => 'high',
 
             /*
              |--------------------------------------------------------------------------
@@ -157,7 +157,7 @@ return [
              | will only affect the order of various sources in the namespace.
              |
              */
-            'published' => 'high',
+            'published' => 'medium',
 
             /*
              |--------------------------------------------------------------------------
@@ -174,7 +174,7 @@ return [
              | will only affect the order of various sources in the namespace.
              |
              */
-            'source' => 'medium',
+            'source' => 'low',
         ],
     ],
 
@@ -228,4 +228,15 @@ return [
          */
         'reset_on_disable' => env('KITSUNE_CORE_GLOBAL_MODE_RESET', true),
     ],
+
+    /*
+     |--------------------------------------------------------------------------
+     | Auto Refresh
+     |--------------------------------------------------------------------------
+     | If auto refresh is activated, Kitsune will update registered
+     | namespaces and the possibly enabled global mode, whenever
+     | a namespace or one of its sources gets updated.
+     |
+     */
+    'auto_refresh' => env('KITSUNE_CORE_AUTO_REFRESH', true),
 ];
