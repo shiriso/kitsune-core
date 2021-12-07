@@ -17,12 +17,10 @@ class Kitsune implements IsKitsuneCore
     protected bool $globalModeEnabled = false;
     protected ?string $globalNamespace = null;
     protected FileViewFinder $viewFinder;
-    protected ?string $layout;
 
     public function __construct()
     {
         $this->viewFinder = View::getFinder();
-        $this->layout = config('kitsune.view.layout');
         $this->globalModeEnabled = config('kitsune.core.global_mode.enabled', false);
         $this->setGlobalNamespace(config('kitsune.core.global_mode.namespace'));
         $this->setAutoRefresh(config('kitsune.core.auto_refresh', true));
