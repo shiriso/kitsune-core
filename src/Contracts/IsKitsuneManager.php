@@ -4,21 +4,39 @@ namespace Shiriso\Kitsune\Core\Contracts;
 
 interface IsKitsuneManager
 {
+    /**
+     * Determines if a specific Namespace is already registered.
+     *
+     * @param  string  $namespace
+     * @return bool
+     */
+    public function hasNamespace(string $namespace): bool;
 
     /**
-     * Get the namespace which is currently configured for global mode.
+     * Initializes the configured namespaces.
+     *
+     * This will temporarily disable the automatic refresh to not trigger
+     * it on every new namespace, source or path to be added.
+     *
+     * If it was configured to automatically refresh paths before
+     * initialization it will trigger the refresh when all
+     * namespaces and sources have been configured.
+     */
+    public function initialize(): void;
+
+    /**
+     * Initialize registered namespaces, if they have not been initialized before.
+     *
+     * @return void
+     */
+    public function initializeNamespaces(): void;
+
+    /**
+     * Get the layout which is currently configured for the application.
      *
      * @return string|null
      */
-    public function getGlobalNamespace(): ?string;
-
-    /**
-     * Activate the global mode for the given namespace, and make sure it is disabled for every other namespace.
-     *
-     * @param  string|null  $namespace
-     * @return bool
-     */
-    public function setGlobalNamespace(?string $namespace): bool;
+    public function getApplicationLayout(): ?string;
 
     /**
      * Retrieve the according namespace.
@@ -29,16 +47,23 @@ interface IsKitsuneManager
     public function getNamespace(string $namespace): IsSourceNamespace;
 
     /**
+     * Initialize registered package namespaces and add paths to package namespaces.
+     *
+     * @return void
+     */
+    public function initializePackages(): void;
+
+    /**
      * Create a new SourceNamespace for a package, which will already include the published path for vendor views.
      *
      * @param  string  $namespace
-     * @param  string|array  $vendorPaths
+     * @param  string|array|null  $vendorPaths
      * @param  array  $namespaceConfiguration
      * @return IsSourceNamespace
      */
     public function addPackage(
         string $namespace,
-        string|array $vendorPaths,
+        string|array|null $vendorPaths = null,
         array $namespaceConfiguration = []
     ): IsSourceNamespace;
 
@@ -52,24 +77,17 @@ interface IsKitsuneManager
     public function addNamespace(string $namespace, array $configuration = []): IsSourceNamespace;
 
     /**
-     * Retrieve a list of all registered namespaces.
-     *
-     * @return array
-     */
-    public function getRegisteredNamespaces(): array;
-
-    /**
-     * Get the layout which is currently configured for the application.
-     *
-     * @return string|null
-     */
-    public function getApplicationLayout(): ?string;
-
-    /**
      * Set the layout for the application.
      *
      * @param  string|null  $layout
      * @return bool
      */
     public function setApplicationLayout(?string $layout): bool;
+
+    /**
+     * Retrieve a list of all registered namespaces.
+     *
+     * @return array
+     */
+    public function getRegisteredNamespaces(): array;
 }

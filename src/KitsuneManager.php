@@ -3,57 +3,20 @@
 namespace Shiriso\Kitsune\Core;
 
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
 use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
+use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
 
 class KitsuneManager implements IsKitsuneManager
 {
     use UtilisesKitsune;
 
-    protected ?string $globalNamespace = null;
     protected ?string $applicationLayout = null;
     protected array $namespaces = [];
 
     public function __construct()
     {
-        $this->setGlobalNamespace(config('kitsune.core.global_mode.namespace'));
         $this->setApplicationLayout(config('kitsune.view.layout'));
-
-        $this->initializeNamespaces();
-        //$this->initializePackages();
     }
-
-    /**
-     * Activate the global mode for the given namespace, and make sure it is disabled for every other namespace.
-     *
-     * @param  string|null  $namespace
-     * @return bool
-     */
-    public function setGlobalNamespace(?string $namespace): bool
-    {
-        if ($this->globalNamespace === $namespace) {
-            return false;
-        }
-
-        $this->globalNamespace = $namespace;
-
-        if (!$namespace) {
-            return config('kitsune.core.global_mode.reset_on_disable') && $this->getKitsuneCore()->resetGlobalViewFinder();
-        }
-
-        return $this->getKitsuneCore()->configureGlobalViewFinder($namespace);
-    }
-
-    /**
-     * Get the namespace which is currently configured for global mode.
-     *
-     * @return string|null
-     */
-    public function getGlobalNamespace(): ?string
-    {
-        return $this->globalNamespace;
-    }
-
 
     /**
      * Retrieve a list of all registered namespaces.
@@ -77,6 +40,17 @@ class KitsuneManager implements IsKitsuneManager
     }
 
     /**
+     * Determines if a specific Namespace is already registered.
+     *
+     * @param  string  $namespace
+     * @return bool
+     */
+    public function hasNamespace(string $namespace): bool
+    {
+        return array_key_exists($namespace, $this->namespaces);
+    }
+
+    /**
      * Get the layout which is currently configured for the application.
      *
      * @return string|null
@@ -97,6 +71,10 @@ class KitsuneManager implements IsKitsuneManager
         if ($this->applicationLayout !== $layout) {
             $this->applicationLayout = $layout;
 
+            foreach ($this->getRegisteredNamespaces() as $namespace) {
+                $this->getNamespace($namespace)->setUpdateState();
+            }
+
             return true;
         }
 
@@ -115,7 +93,7 @@ class KitsuneManager implements IsKitsuneManager
         return $this->namespaces[$namespace] =
             new ($this->getKitsuneHelper()->getSourceNamespaceClass())(
                 $namespace,
-                ...app('kitsune.helper')->toCamelKeys($configuration)
+                ...$this->getKitsuneHelper()->toCamelKeys($configuration)
             );
     }
 
@@ -123,48 +101,88 @@ class KitsuneManager implements IsKitsuneManager
      * Create a new SourceNamespace for a package, which will already include the published path for vendor views.
      *
      * @param  string  $namespace
-     * @param  string|array  $vendorPaths
+     * @param  string|array|null  $vendorPaths
      * @param  array  $namespaceConfiguration
      * @return IsSourceNamespace
      */
     public function addPackage(
         string $namespace,
-        string|array $vendorPaths,
+        string|array|null $vendorPaths = null,
         array $namespaceConfiguration = []
     ): IsSourceNamespace {
         $sourceNamespace = $this->addNamespace($namespace, $namespaceConfiguration);
 
-        if (!$sourceNamespace->hasSource('published')) {
-            $sourceNamespace->addSource(
-                'published',
-
-                ...$this->getKitsuneHelper()->getDefaultSourceConfiguration('published')
-            );
-        }
-
-        // TODO: ADD PATH TO SOURCE
+        $sourceNamespace->addPathToSource($namespace, 'published');
+        $vendorPaths && $sourceNamespace->addPathToSource($vendorPaths, 'vendor');
 
         return $this->namespaces[$namespace];
     }
 
     /**
-     * Initialize the configured namespaces.
+     * Initializes the configured namespaces.
      *
+     * This will temporarily disable the automatic refresh to not trigger
+     * it on every new namespace, source or path to be added.
      *
+     * If it was configured to automatically refresh paths before
+     * initialization it will trigger the refresh when all
+     * namespaces and sources have been configured.
      */
-    protected function initializeNamespaces(): void
+    public function initialize(): void
     {
-        foreach (config('kitsune.view.namespaces', []) as $namespace => $configuration) {
-            is_int($namespace) ? $this->addNamespace($configuration) : $this->addNamespace($namespace, $configuration);
+        $kitsune = $this->getKitsuneCore();
+        $initialRefreshState = $kitsune->shouldAutoRefresh();
+
+        $kitsune->disableAutoRefresh();
+
+        $this->initializePackages();
+        $this->initializeNamespaces();
+
+        if ($initialRefreshState) {
+            $kitsune->enableAutoRefresh();
+
+            foreach ($this->getRegisteredNamespaces() as $namespace) {
+                $this->getNamespace($namespace)->setUpdateState();
+            }
         }
     }
 
-    protected function initializePackages(): void
+    /**
+     * Initialize registered namespaces, if they have not been initialized before.
+     *
+     * @return void
+     */
+    public function initializeNamespaces(): void
     {
-        foreach (config('kitsune.packages', []) as $package => $configuration)
-        {
-            // TODO: IMPLEMENT
-            //$this->addPackage($package);
+        foreach (array_merge(config('kitsune.view.namespaces', []), ['kitsune']) as $namespace => $configuration) {
+            if (is_int($namespace)) {
+                $namespace = $configuration;
+                $configuration = [];
+            }
+
+            if (!$this->hasNamespace($namespace)) {
+                $this->addNamespace($namespace, $configuration);
+            }
+        }
+    }
+
+    /**
+     * Initialize registered package namespaces and add paths to package namespaces.
+     *
+     * @return void
+     */
+    public function initializePackages(): void
+    {
+        foreach (config('kitsune.packages', []) as $package => $configuration) {
+            if (!$this->hasNamespace($package)) {
+                $this->addPackage($package, null, $configuration['namespace'] ?? []);
+            }
+
+            $sourceNamespace = $this->getNamespace($package);
+
+            foreach ($configuration['paths'] ?? [] as $source => $paths) {
+                $sourceNamespace->addPathToSource($paths, $source);
+            }
         }
     }
 }

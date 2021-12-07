@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
+use Shiriso\Kitsune\Core\Events\KitsuneNamespaceUpdated;
 
 class SourceNamespace implements IsSourceNamespace
 {
@@ -14,7 +15,7 @@ class SourceNamespace implements IsSourceNamespace
     protected ?KitsuneManager $manager;
     protected array $sourceRepositories = [];
     protected array $sourcesByPriority = [];
-    protected bool $hasUpdates = true;
+    protected bool $hasUpdates = false;
 
     public function __construct(
         protected string $namespace,
@@ -31,6 +32,16 @@ class SourceNamespace implements IsSourceNamespace
     }
 
     /**
+     * Returns the name of the current namespace.
+     *
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->namespace;
+    }
+
+    /**
      * Set a new priority.
      *
      * @param  string|DefinesPriority  $priority
@@ -42,10 +53,18 @@ class SourceNamespace implements IsSourceNamespace
             $priority = $this->getKitsuneHelper()->getPriorityDefault($priority);
         }
 
-        if ($this->priority?->getValue() !== $priority->getValue()) {
+        if (is_string($this->priority)) {
+            $this->priority = $this->getKitsuneHelper()->getPriorityDefault($this->priority);
+        }
+
+        if (!$this->priority || $this->priority->getValue() !== $priority->getValue()) {
             $this->priority = $priority;
 
             return true;
+        }
+
+        if (is_string($this->priority)) {
+            dd($this->priority, debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5));
         }
 
         return false;
@@ -70,7 +89,7 @@ class SourceNamespace implements IsSourceNamespace
      */
     public function setSourcePriority(string $source, string|DefinesPriority $priority): static
     {
-        $this->hasUpdates = $this->hasUpdates || $this->getSource($source)->setPriority($priority);
+        $this->getSource($source)->setPriority($priority);
 
         return $this;
     }
@@ -96,7 +115,7 @@ class SourceNamespace implements IsSourceNamespace
     {
         if ($this->layout !== $layout) {
             $this->layout = $layout;
-            $this->hasUpdates = true;
+            $this->setUpdateState();
 
             return true;
         }
@@ -131,10 +150,8 @@ class SourceNamespace implements IsSourceNamespace
         array $paths = null,
         string|DefinesPriority|null $priority = null,
     ): SourceRepository {
-        $this->setUpdateState();
-
         return $this->sourceRepositories[$sourceRepository] =
-            new (app('kitsune.helper')->getSourceRepositoryClass())(...func_get_args());
+            new (app('kitsune.helper')->getSourceRepositoryClass())($this, ...func_get_args());
     }
 
     /**
@@ -164,11 +181,11 @@ class SourceNamespace implements IsSourceNamespace
     /**
      * Prepend a source path for the given repository.
      *
-     * @param  string  $path
+     * @param  string|array  $path
      * @param  string|array  $sourceRepository
      * @return bool
      */
-    public function prependPathToSource(string $path, string|array $sourceRepository): bool
+    public function prependPathToSource(string|array $path, string|array $sourceRepository): bool
     {
         return $this->addPathToSource($path, $sourceRepository, true);
     }
@@ -176,25 +193,14 @@ class SourceNamespace implements IsSourceNamespace
     /**
      * Register a source path for the given repository.
      *
-     * @param  string  $path
+     * @param  string|array  $path
      * @param  string|array  $sourceRepository
      * @param  bool  $prepend
      * @return bool
      */
-    public function addPathToSource(string $path, string|array $sourceRepository, bool $prepend = false): bool
+    public function addPathToSource(string|array $path, string|array $sourceRepository, bool $prepend = false): bool
     {
-        $repository = $this->getSource(...Arr::wrap($sourceRepository));
-
-        if ($repository->addPath($path, $prepend)) {
-            $this->setUpdateState();
-
-            // TODO: USE KITSUNE
-            //return $this->refreshViewSources();
-
-            return true;
-        }
-
-        return false;
+        return $this->getSource(...Arr::wrap($sourceRepository))->addPath($path, $prepend);
     }
 
     /**
@@ -203,7 +209,11 @@ class SourceNamespace implements IsSourceNamespace
      */
     protected function initializeConfiguredSources(): void
     {
-        foreach ($this->getKitsuneHelper()->getDefaultSourceConfigurations() as $alias => $configuration) {
+        foreach (
+            $this->getKitsuneHelper()->getPackageSourceConfigurations(
+                $this->getName()
+            ) as $alias => $configuration
+        ) {
             $this->addSource($alias, ...$configuration);
         }
     }
@@ -223,7 +233,7 @@ class SourceNamespace implements IsSourceNamespace
         $prioritizedSources = $this->getPaths();
 
         foreach (
-            $addDefaultPaths ? $this->getKitsuneHelper()->getLaravelViewPathsByPriority() : []
+            $this->addDefaults || $addDefaultPaths ? $this->getKitsuneHelper()->getLaravelViewPathsByPriority() : []
             as $priorityValue => $paths
         ) {
             $prioritizedSources[$priorityValue] = array_merge(
@@ -235,12 +245,12 @@ class SourceNamespace implements IsSourceNamespace
         krsort($prioritizedSources);
 
         foreach (Arr::flatten($prioritizedSources) as $sourcePath) {
-            if($applicationLayout) {
-                $sourcePathDerivatives[] = $sourcePath . DIRECTORY_SEPARATOR . $applicationLayout;
+            if ($applicationLayout) {
+                $sourcePathDerivatives[] = $sourcePath.DIRECTORY_SEPARATOR.$applicationLayout;
             }
 
-            if($namespaceLayout) {
-                $sourcePathDerivatives[] = $sourcePath . DIRECTORY_SEPARATOR . $namespaceLayout;
+            if ($namespaceLayout) {
+                $sourcePathDerivatives[] = $sourcePath.DIRECTORY_SEPARATOR.$namespaceLayout;
             }
 
             $sourcePathDerivatives[] = $sourcePath;
@@ -275,7 +285,6 @@ class SourceNamespace implements IsSourceNamespace
         return $this->sourcesByPriority = $prioritizedSources;
     }
 
-
     /**
      * Determines the update state and sets it the namespace.
      *
@@ -287,8 +296,23 @@ class SourceNamespace implements IsSourceNamespace
      * @param  bool  $state
      * @return bool
      */
-    protected function setUpdateState(bool $state = true): bool
+    public function setUpdateState(bool $state = true): bool
     {
-        return $this->hasUpdates = $this->hasUpdates || $state;
+        $this->hasUpdates |= $state;
+
+        $this->dispatchNamespaceUpdatedEvent($this->hasUpdates);
+
+        return $this->hasUpdates;
+    }
+
+    /**
+     * Dispatches the KitsuneNamespaceUpdated event if the given flag is true.
+     *
+     * @param  bool  $dispatch
+     * @return void
+     */
+    protected function dispatchNamespaceUpdatedEvent(bool $dispatch): void
+    {
+        KitsuneNamespaceUpdated::dispatchIf($this->getKitsuneCore()->shouldAutoRefresh() && $dispatch, $this);
     }
 }

@@ -11,6 +11,7 @@ interface IsSourceRepository
      * Creates a new repository for the given alias.
      */
     public function __construct(
+        IsSourceNamespace $namespace,
         string $alias,
         ?string $basePath = null,
         ?array $paths = null,
@@ -28,11 +29,11 @@ interface IsSourceRepository
     /**
      * Register a path as source.
      *
-     * @param  string  $path
+     * @param  string|array  $path
      * @param  bool  $prepend
      * @return bool
      */
-    public function addPath(string $path, bool $prepend = false): bool;
+    public function addPath(string|array $path, bool $prepend = false): bool;
 
     /**
      * Get the current priority.
@@ -44,10 +45,10 @@ interface IsSourceRepository
     /**
      * Prepend a path to the registered $vendorPaths.
      *
-     * @param  string  $path
+     * @param  string|array  $path
      * @return bool
      */
-    public function prependPath(string $path): bool;
+    public function prependPath(string|array $path): bool;
 
     /**
      * Get the source paths which have been registered in the repository.

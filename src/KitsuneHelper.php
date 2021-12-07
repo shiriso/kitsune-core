@@ -5,6 +5,7 @@ namespace Shiriso\Kitsune\Core;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
 use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
 use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
@@ -21,6 +22,8 @@ use Shiriso\Kitsune\Core\Exceptions\PriorityDefinitionNotEnumException;
 
 class KitsuneHelper implements IsKitsuneHelper
 {
+    use UtilisesKitsune;
+
     protected ?array $defaultSources = null;
 
     /**
@@ -147,7 +150,7 @@ class KitsuneHelper implements IsKitsuneHelper
      */
     public function getPriorityDefault(string|DefinesPriority $type): DefinesPriority
     {
-        if(is_a($type, DefinesPriority::class)) {
+        if (is_a($type, DefinesPriority::class)) {
             return $type;
         }
 
@@ -249,22 +252,30 @@ class KitsuneHelper implements IsKitsuneHelper
     public function getDefaultSourceConfigurations(): array
     {
         return $this->defaultSources ??= array_replace_recursive(
-            [
-                'published' => [
-                    'basePath' => resource_path('views/vendor'),
-                    'priority' => 'published',
-                    'paths' => [],
-                ],
-                'vendor' => [
-                    'basePath' => base_path('vendor'),
-                    'priority' => 'vendor',
-                    'paths' => [],
-                ],
-            ],
+            $this->getDefaultSources(),
             array_map([$this, 'toCamelKeys'], config('kitsune.view.sources', []))
         );
     }
 
+    /**
+     * Returns the combined list of configured default sources
+     * and the sources configured for the package namespace.
+     *
+     * In case you need to modify one these values, the most
+     * convenient way might be, publishing the config files
+     * and adjust the specific keys in there or add new
+     * sources which are required for your application.
+     *
+     * @param  string  $package
+     * @return array
+     */
+    public function getPackageSourceConfigurations(string $package): array
+    {
+        return $this->packageSources[$package] ??= array_replace_recursive(
+            $this->getDefaultSourceConfigurations(),
+            array_map([$this, 'toCamelKeys'], config(sprintf('kitsune.packages.%s.sources', $package), []))
+        );
+    }
 
     /**
      * Returns an array with all existing default source configurations
@@ -298,5 +309,50 @@ class KitsuneHelper implements IsKitsuneHelper
     public function getLaravelViewPathsByPriority(): array
     {
         return [$this->getPriorityDefault('laravel')->getValue() => config('view.paths')];
+    }
+
+    /**
+     * Get the actual source namespace by its name or the namespace itself.
+     *
+     * @param  string|IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function getNamespace(string|IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        return is_a($namespace, IsSourceNamespace::class) ? $namespace : $this->getKitsuneManager()->getNamespace(
+            $namespace
+        );
+    }
+
+    /**
+     * Get the actual source namespace alias by its name or the namespace itself.
+     *
+     * @param  string|IsSourceNamespace  $namespace
+     * @return string
+     */
+    public function getNamespaceAlias(string|IsSourceNamespace $namespace): string
+    {
+        return is_a($namespace, IsSourceNamespace::class) ? $namespace->getName() : $namespace;
+    }
+
+    /**
+     * Get the default sources which we expect always to exist for internal usages.
+     *
+     * @return array
+     */
+    protected function getDefaultSources(): array
+    {
+        return [
+            'published' => [
+                'basePath' => resource_path('views/vendor'),
+                'priority' => 'published',
+                'paths' => [],
+            ],
+            'vendor' => [
+                'basePath' => base_path('vendor'),
+                'priority' => 'vendor',
+                'paths' => [],
+            ],
+        ];
     }
 }

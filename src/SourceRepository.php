@@ -14,12 +14,11 @@ class SourceRepository implements IsSourceRepository
 {
     use UtilisesKitsune;
 
-    protected ?IsSourceNamespace $namespace = null;
-
     /**
      * Creates a new repository for the given alias.
      */
     public function __construct(
+        protected IsSourceNamespace $namespace,
         protected string $alias,
         protected ?string $basePath = null,
         protected ?array $paths = null,
@@ -31,6 +30,8 @@ class SourceRepository implements IsSourceRepository
         if (!is_a($this->priority, DefinesPriority::class)) {
             $this->priority = $this->getDefaultPriority($this->priority);
         }
+
+        $this->propagateUpdateToNamespace();
     }
 
     /**
@@ -47,6 +48,8 @@ class SourceRepository implements IsSourceRepository
     {
         $this->namespace = $namespace;
 
+        $this->propagateUpdateToNamespace();
+
         return $this;
     }
 
@@ -58,12 +61,14 @@ class SourceRepository implements IsSourceRepository
      */
     public function setPriority(string|DefinesPriority|null $priority): bool
     {
-        if(!is_a($priority, DefinesPriority::class)) {
+        if (!is_a($priority, DefinesPriority::class)) {
             $priority = $this->getDefaultPriority($priority);
         }
 
         if ($this->priority->getValue() !== $priority->getValue()) {
             $this->priority = $priority;
+
+            $this->propagateUpdateToNamespace();
 
             return true;
         }
@@ -84,10 +89,10 @@ class SourceRepository implements IsSourceRepository
     /**
      * Prepend a path to the registered $vendorPaths.
      *
-     * @param  string  $path
+     * @param  string|array  $path
      * @return bool
      */
-    public function prependPath(string $path): bool
+    public function prependPath(string|array $path): bool
     {
         return $this->addPath($path, true);
     }
@@ -95,19 +100,25 @@ class SourceRepository implements IsSourceRepository
     /**
      * Register a path as source.
      *
-     * @param  string  $path
+     * @param  string|array  $path
      * @param  bool  $prepend
      * @return bool
      */
-    public function addPath(string $path, bool $prepend = false): bool
+    public function addPath(string|array $path, bool $prepend = false): bool
     {
-        if (!in_array($path, $this->paths, true)) {
-            $prepend ? array_unshift($this->paths, $path) : $this->paths[] = $path;
+        $updated = false;
 
-            return true;
+        foreach (Arr::wrap($path) as $path) {
+            if (!in_array($path, $this->paths, true)) {
+                $prepend ? array_unshift($this->paths, $path) : $this->paths[] = $path;
+
+                $updated = true;
+            }
         }
 
-        return false;
+        $updated && $this->propagateUpdateToNamespace();
+
+        return $updated;
     }
 
     /**
@@ -180,5 +191,15 @@ class SourceRepository implements IsSourceRepository
         string|array|DefinesPriority|null $default = null
     ): string|array|DefinesPriority|null {
         return $this->getKitsuneHelper()->getDefaultSourceConfiguration($this->alias)[$key] ?? $default;
+    }
+
+    /**
+     * Dispatches the KitsuneNamespaceUpdated event.
+     *
+     * @return void
+     */
+    protected function propagateUpdateToNamespace(): void
+    {
+        $this->namespace->setUpdateState();
     }
 }

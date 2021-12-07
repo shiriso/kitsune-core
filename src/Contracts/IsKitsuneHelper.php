@@ -2,19 +2,23 @@
 
 namespace Shiriso\Kitsune\Core\Contracts;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Shiriso\Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
 use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
 use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
 use Shiriso\Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
 use Shiriso\Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
 use Shiriso\Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
-use Shiriso\Kitsune\Core\KitsuneHelper;
 
 interface IsKitsuneHelper
 {
+    /**
+     * Get the actual source namespace alias by its name or the namespace itself.
+     *
+     * @param  string|IsSourceNamespace  $namespace
+     * @return string
+     */
+    public function getNamespaceAlias(string|IsSourceNamespace $namespace): string;
 
     /**
      * Retrieve the default configuration for a specific source.
@@ -84,12 +88,34 @@ interface IsKitsuneHelper
     public function getSourceNamespaceClass(): string;
 
     /**
+     * Returns the combined list of configured default sources
+     * and the sources configured for the package namespace.
+     *
+     * In case you need to modify one these values, the most
+     * convenient way might be, publishing the config files
+     * and adjust the specific keys in there or add new
+     * sources which are required for your application.
+     *
+     * @param  string  $package
+     * @return array
+     */
+    public function getPackageSourceConfigurations(string $package): array;
+
+    /**
+     * Get the actual source namespace by its name or the namespace itself.
+     *
+     * @param  string|IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function getNamespace(string|IsSourceNamespace $namespace): IsSourceNamespace;
+
+    /**
      * Retrieves the default priority for a given type.
      *
-     * @param  string  $type
+     * @param  string|DefinesPriority  $type
      * @return DefinesPriority
      */
-    public function getPriorityDefault(string $type): DefinesPriority;
+    public function getPriorityDefault(string|DefinesPriority $type): DefinesPriority;
 
     /**
      * Get the currently configured manager class implementing ProvidesKitsuneManager.
@@ -98,6 +124,13 @@ interface IsKitsuneHelper
      * @throws InvalidKitsuneManagerException
      */
     public function getManagerClass(): string;
+
+    /**
+     * Get the paths registered in Laravel's default config index by the default priority value.
+     *
+     * @return array
+     */
+    public function getLaravelViewPathsByPriority(): array;
 
     /**
      * Returns an array with all existing default source configurations
@@ -130,11 +163,4 @@ interface IsKitsuneHelper
      * @return bool
      */
     public function pathsHaveUpdates(array $newPaths, ?array $oldPaths): bool;
-
-    /**
-     * Get the paths registered in Laravel's default config index by the default priority value.
-     *
-     * @return array
-     */
-    public function getLaravelViewPathsByPriority(): array;
 }
