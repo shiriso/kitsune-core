@@ -17,6 +17,8 @@ class KitsunePriority implements DefinesPriority
     protected string $priority;
 
     /**
+     * Creates a new instance of a Priority.
+     *
      * @throws InvalidPriorityException
      */
     public function __construct(string $priority = 'medium')
@@ -28,6 +30,11 @@ class KitsunePriority implements DefinesPriority
         $this->priority = $priority;
     }
 
+    /**
+     * Get the numeric representation of the priority.
+     *
+     * @return int
+     */
     public function getValue(): int
     {
         return $this->priorities[$this->priority];
