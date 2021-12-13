@@ -5,17 +5,18 @@ namespace Shiriso\Kitsune\Core;
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
+use Shiriso\Kitsune\Core\Events\KitsuneManagerInitialized;
+use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceCreated;
 
 class KitsuneManager implements IsKitsuneManager
 {
     use UtilisesKitsune;
 
-    protected ?string $applicationLayout = null;
+    protected bool $initialized = false;
     protected array $namespaces = [];
 
     public function __construct()
     {
-        $this->setApplicationLayout(config('kitsune.view.layout'));
     }
 
     /**
@@ -36,7 +37,7 @@ class KitsuneManager implements IsKitsuneManager
      */
     public function getNamespace(string $namespace): IsSourceNamespace
     {
-        return $this->namespaces[$namespace] ?? $this->addNamespace(...func_get_args());
+        return $this->namespaces[$namespace];
     }
 
     /**
@@ -51,37 +52,6 @@ class KitsuneManager implements IsKitsuneManager
     }
 
     /**
-     * Get the layout which is currently configured for the application.
-     *
-     * @return string|null
-     */
-    public function getApplicationLayout(): ?string
-    {
-        return $this->applicationLayout;
-    }
-
-    /**
-     * Set the layout for the application.
-     *
-     * @param  string|null  $layout
-     * @return bool
-     */
-    public function setApplicationLayout(?string $layout): bool
-    {
-        if ($this->applicationLayout !== $layout) {
-            $this->applicationLayout = $layout;
-
-            foreach ($this->getRegisteredNamespaces() as $namespace) {
-                $this->getNamespace($namespace)->setUpdateState();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Create a new SourceNamespace using the given configuration or defaults.
      *
      * @param  string  $namespace
@@ -90,11 +60,15 @@ class KitsuneManager implements IsKitsuneManager
      */
     public function addNamespace(string $namespace, array $configuration = []): IsSourceNamespace
     {
-        return $this->namespaces[$namespace] =
+        $sourceNamespace = $this->namespaces[$namespace] =
             new ($this->getKitsuneHelper()->getSourceNamespaceClass())(
                 $namespace,
                 ...$this->getKitsuneHelper()->toCamelKeys($configuration)
             );
+
+        KitsuneSourceNamespaceCreated::dispatch($sourceNamespace);
+
+        return $sourceNamespace;
     }
 
     /**
@@ -130,20 +104,22 @@ class KitsuneManager implements IsKitsuneManager
      */
     public function initialize(): void
     {
-        $kitsune = $this->getKitsuneCore();
-        $initialRefreshState = $kitsune->shouldAutoRefresh();
+        if (!$this->initialized) {
+            $kitsune = $this->getKitsuneCore();
+            $initialRefreshState = $kitsune->shouldAutoRefresh();
 
-        $kitsune->disableAutoRefresh();
+            $kitsune->disableAutoRefresh();
 
-        $this->initializePackages();
-        $this->initializeNamespaces();
+            $this->initializePackages();
+            $this->initializeNamespaces();
 
-        if ($initialRefreshState) {
-            $kitsune->enableAutoRefresh();
-
-            foreach ($this->getRegisteredNamespaces() as $namespace) {
-                $this->getNamespace($namespace)->setUpdateState();
+            if ($initialRefreshState) {
+                $kitsune->enableAutoRefresh();
             }
+
+            $this->initialized = true;
+
+            KitsuneManagerInitialized::dispatch($this);
         }
     }
 
@@ -154,7 +130,7 @@ class KitsuneManager implements IsKitsuneManager
      */
     public function initializeNamespaces(): void
     {
-        foreach (array_merge(config('kitsune.view.namespaces', []), ['kitsune']) as $namespace => $configuration) {
+        foreach (config('kitsune.view.namespaces', []) as $namespace => $configuration) {
             if (is_int($namespace)) {
                 $namespace = $configuration;
                 $configuration = [];

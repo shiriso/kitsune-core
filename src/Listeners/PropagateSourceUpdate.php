@@ -6,7 +6,7 @@ use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
 use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
 
-class UpdateKitsuneForNamespace
+class PropagateSourceUpdate
 {
     use UtilisesKitsune;
 
@@ -22,13 +22,11 @@ class UpdateKitsuneForNamespace
     /**
      * Handle the event.
      *
-     * @param  KitsuneSourceNamespaceUpdated  $event
+     * @param  KitsuneSourceRepositoryUpdated  $event
      * @return void
      */
-    public function __invoke(KitsuneSourceNamespaceUpdated $event)
+    public function __invoke(KitsuneSourceRepositoryUpdated $event)
     {
-        if ($this->getKitsuneCore()->shouldAutoRefresh()) {
-            $this->getKitsuneCore()->refreshNamespacePaths($event->namespace);
-        }
+        $event->namespace->setUpdateState();
     }
 }

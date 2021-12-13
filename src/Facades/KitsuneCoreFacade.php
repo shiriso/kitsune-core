@@ -6,7 +6,12 @@ use Illuminate\Support\Facades\Facade;
 
 class KitsuneCoreFacade extends Facade
 {
-    protected static function getFacadeAccessor()
+    /**
+     * Get the registered name of the component.
+     *
+     * @return string
+     */
+    protected static function getFacadeAccessor(): string
     {
         return 'kitsune';
     }

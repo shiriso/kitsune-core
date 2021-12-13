@@ -5,15 +5,25 @@ namespace Shiriso\Kitsune\Core;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
-use Shiriso\Kitsune\Core\Events\KitsuneNamespaceUpdated;
+use Shiriso\Kitsune\Core\Events\KitsuneCoreInitialized;
+use Shiriso\Kitsune\Core\Events\KitsuneCoreUpdated;
+use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
+use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
 use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneHelperException;
+use Shiriso\Kitsune\Core\Listeners\CoreInitialized;
+use Shiriso\Kitsune\Core\Listeners\HandleCoreUpdate;
+use Shiriso\Kitsune\Core\Listeners\PropagateSourceUpdate;
 use Shiriso\Kitsune\Core\Listeners\UpdateKitsuneForNamespace;
 use Shiriso\Kitsune\Core\Middleware\KitsuneGlobalModeMiddleware;
+use Shiriso\Kitsune\Core\Middleware\KitsuneLayoutMiddleware;
 use Shiriso\Kitsune\Core\Middleware\KitsuneMiddleware;
 
 class KitsuneCoreServiceProvider extends ServiceProvider
 {
+    use UtilisesKitsune;
+
     /**
      * Bootstrap the application services.
      *
@@ -27,7 +37,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
 
         $this->addEventListeners();
 
-        app('kitsune')->start();
+        $this->getKitsuneCore()->initialize();
     }
 
     /**
@@ -39,9 +49,10 @@ class KitsuneCoreServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/kitsune-core.php', 'kitsune.core');
         $this->mergeConfigFrom(__DIR__.'/../config/kitsune-view.php', 'kitsune.view');
+        $this->mergeConfigFrom(__DIR__.'/../config/kitsune-namespace.php', 'kitsune.packages.kitsune');
 
         $this->registerHelpers();
-        $this->registerKitsune();
+        $this->registerKitsuneServices();
         $this->registerMiddleware();
     }
 
@@ -61,19 +72,30 @@ class KitsuneCoreServiceProvider extends ServiceProvider
      * @return void
      * @throws InvalidKitsuneHelperException
      */
-    protected function registerKitsune()
+    protected function registerKitsuneServices()
     {
-        if (!is_a(
+        $this->app->singleton('kitsune.helper', $this->getHelperClass());
+        $this->app->singleton('kitsune', app('kitsune.helper')->getCoreClass());
+        $this->app->singleton('kitsune.manager', app('kitsune.helper')->getManagerClass());
+    }
+
+    /**
+     * Retrieve the service class currently representing the Kitsune helper.
+     *
+     * @return string
+     * @throws InvalidKitsuneHelperException
+     */
+    protected function getHelperClass(): string
+    {
+        if (is_a(
             $helperClass = config('kitsune.core.service.helper', Kitsune::class),
             IsKitsuneHelper::class,
             true
         )) {
-            throw new InvalidKitsuneHelperException($helperClass);
+            return $helperClass;
         }
 
-        $this->app->singleton('kitsune.helper', $helperClass);
-        $this->app->singleton('kitsune', app('kitsune.helper')->getCoreClass());
-        $this->app->singleton('kitsune.manager', app('kitsune.helper')->getManagerClass());
+        throw new InvalidKitsuneHelperException($helperClass);
     }
 
     /**
@@ -85,6 +107,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
     {
         app('router')
             ->aliasMiddleware('kitsune', KitsuneMiddleware::class)
+            ->aliasMiddleware('kitsune.layout', KitsuneLayoutMiddleware::class)
             ->aliasMiddleware('kitsune.global', KitsuneGlobalModeMiddleware::class);
     }
 
@@ -106,6 +129,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
     protected function publishConfig()
     {
         $this->publishes([
+            __DIR__.'/../config/kitsune-namespace.php' => config_path('kitsune/packages/kitsune.php'),
             __DIR__.'/../config/kitsune-core.php' => config_path('kitsune/core.php'),
             __DIR__.'/../config/kitsune-view.php' => config_path('kitsune/view.php'),
         ], 'kitsune.config');
@@ -113,6 +137,9 @@ class KitsuneCoreServiceProvider extends ServiceProvider
 
     protected function addEventListeners()
     {
-        Event::listen(KitsuneNamespaceUpdated::class, UpdateKitsuneForNamespace::class);
+        Event::listen(KitsuneCoreInitialized::class, CoreInitialized::class);
+        Event::listen(KitsuneCoreUpdated::class, HandleCoreUpdate::class);
+        Event::listen(KitsuneSourceNamespaceUpdated::class, UpdateKitsuneForNamespace::class);
+        Event::listen(KitsuneSourceRepositoryUpdated::class, PropagateSourceUpdate::class);
     }
 }

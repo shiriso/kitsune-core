@@ -2,8 +2,12 @@
 
 namespace Shiriso\Kitsune\Core\Contracts;
 
+use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceCreated;
+use Shiriso\Kitsune\Core\KitsuneManager;
+
 interface IsKitsuneManager
 {
+
     /**
      * Determines if a specific Namespace is already registered.
      *
@@ -30,13 +34,6 @@ interface IsKitsuneManager
      * @return void
      */
     public function initializeNamespaces(): void;
-
-    /**
-     * Get the layout which is currently configured for the application.
-     *
-     * @return string|null
-     */
-    public function getApplicationLayout(): ?string;
 
     /**
      * Retrieve the according namespace.
@@ -75,14 +72,6 @@ interface IsKitsuneManager
      * @return IsSourceNamespace
      */
     public function addNamespace(string $namespace, array $configuration = []): IsSourceNamespace;
-
-    /**
-     * Set the layout for the application.
-     *
-     * @param  string|null  $layout
-     * @return bool
-     */
-    public function setApplicationLayout(?string $layout): bool;
 
     /**
      * Retrieve a list of all registered namespaces.

@@ -6,7 +6,9 @@ use Illuminate\Support\Arr;
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
-use Shiriso\Kitsune\Core\Events\KitsuneNamespaceUpdated;
+use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
+use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
+use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
 
 class SourceNamespace implements IsSourceNamespace
 {
@@ -150,21 +152,23 @@ class SourceNamespace implements IsSourceNamespace
         array $paths = null,
         string|DefinesPriority|null $priority = null,
     ): SourceRepository {
-        return $this->sourceRepositories[$sourceRepository] =
+        $repository = $this->sourceRepositories[$sourceRepository] =
             new (app('kitsune.helper')->getSourceRepositoryClass())($this, ...func_get_args());
+
+        KitsuneSourceRepositoryCreated::dispatch($repository);
+
+        return $repository;
     }
 
     /**
-     * Get the repository for the alias or create a new one if it does not exist.
-     *
-     * Implicit creation only works for sources which are defined in the config.
+     * Get the repository for the alias.
      *
      * @param  string  $sourceRepository
      * @return SourceRepository
      */
     public function getSource(string $sourceRepository): SourceRepository
     {
-        return $this->sourceRepositories[$sourceRepository] ??= $this->addSource($sourceRepository);
+        return $this->sourceRepositories[$sourceRepository];
     }
 
     /**
@@ -207,7 +211,7 @@ class SourceNamespace implements IsSourceNamespace
      * Initializes all source repositories for the configured extra sources,
      * to make sure these are included even when nothing was dynamically registered.
      */
-    protected function initializeConfiguredSources(): void
+    public function initializeConfiguredSources(): void
     {
         foreach (
             $this->getKitsuneHelper()->getPackageSourceConfigurations(
@@ -228,7 +232,7 @@ class SourceNamespace implements IsSourceNamespace
     public function getPathsWithDerivatives(bool $addDefaultPaths = false): array
     {
         $sourcePathDerivatives = [];
-        $applicationLayout = $this->getKitsuneManager()->getApplicationLayout();
+        $applicationLayout = $this->getKitsuneCore()->getApplicationLayout();
         $namespaceLayout = $this->getLayout();
         $prioritizedSources = $this->getPaths();
 
@@ -298,9 +302,9 @@ class SourceNamespace implements IsSourceNamespace
      */
     public function setUpdateState(bool $state = true): bool
     {
-        $this->hasUpdates |= $state;
-
-        $this->dispatchNamespaceUpdatedEvent($this->hasUpdates);
+        if($this->hasUpdates |= $state) {
+            $this->dispatchNamespaceUpdatedEvent();
+        }
 
         return $this->hasUpdates;
     }
@@ -308,11 +312,10 @@ class SourceNamespace implements IsSourceNamespace
     /**
      * Dispatches the KitsuneNamespaceUpdated event if the given flag is true.
      *
-     * @param  bool  $dispatch
      * @return void
      */
-    protected function dispatchNamespaceUpdatedEvent(bool $dispatch): void
+    protected function dispatchNamespaceUpdatedEvent(): void
     {
-        KitsuneNamespaceUpdated::dispatchIf($this->getKitsuneCore()->shouldAutoRefresh() && $dispatch, $this);
+        KitsuneSourceNamespaceUpdated::dispatch($this);
     }
 }

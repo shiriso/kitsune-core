@@ -8,6 +8,7 @@ use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
 use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
+use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
 use Shiriso\Kitsune\Core\Exceptions\MissingBasePathException;
 
 class SourceRepository implements IsSourceRepository
@@ -31,26 +32,17 @@ class SourceRepository implements IsSourceRepository
             $this->priority = $this->getDefaultPriority($this->priority);
         }
 
-        $this->propagateUpdateToNamespace();
+        $this->dispatchRepositoryUpdatedEvent();
     }
 
     /**
-     * This method will assign an internal namespace which may be used to
-     * automatically report updates of the source to the namespace.
+     * Get the namespace the source is registered for.
      *
-     * This is important to let the namespace know, that it needs to
-     * compile a new list of sources when the paths are requested.
-     *
-     * @param  IsSourceNamespace  $namespace
-     * @return SourceRepository
+     * @return IsSourceNamespace
      */
-    public function assignNamespace(IsSourceNamespace $namespace): static
+    public function getNamespace(): IsSourceNamespace
     {
-        $this->namespace = $namespace;
-
-        $this->propagateUpdateToNamespace();
-
-        return $this;
+        return $this->namespace;
     }
 
     /**
@@ -68,7 +60,7 @@ class SourceRepository implements IsSourceRepository
         if ($this->priority->getValue() !== $priority->getValue()) {
             $this->priority = $priority;
 
-            $this->propagateUpdateToNamespace();
+            $this->dispatchRepositoryUpdatedEvent();
 
             return true;
         }
@@ -116,7 +108,7 @@ class SourceRepository implements IsSourceRepository
             }
         }
 
-        $updated && $this->propagateUpdateToNamespace();
+        $updated && $this->dispatchRepositoryUpdatedEvent();
 
         return $updated;
     }
@@ -194,12 +186,13 @@ class SourceRepository implements IsSourceRepository
     }
 
     /**
-     * Dispatches the KitsuneNamespaceUpdated event.
+     * Dispatches the KitsuneSourceRepositoryUpdated event.
      *
      * @return void
      */
-    protected function propagateUpdateToNamespace(): void
+    protected function dispatchRepositoryUpdatedEvent(): void
     {
-        $this->namespace->setUpdateState();
+        KitsuneSourceRepositoryUpdated::dispatch($this);
     }
+
 }

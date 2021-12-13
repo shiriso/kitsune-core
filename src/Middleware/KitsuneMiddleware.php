@@ -9,11 +9,9 @@ class KitsuneMiddleware
 {
     use UtilisesKitsune;
 
-    public function handle($request, Closure $next, $layout = null)
+    public function handle($request, Closure $next)
     {
-        if ($layout) {
-            $this->getKitsuneManager()->setApplicationLayout($layout);
-        }
+        $this->getKitsuneCore()->initialize();
 
         return $next($request);
     }

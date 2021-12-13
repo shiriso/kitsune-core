@@ -8,6 +8,8 @@ use Illuminate\View\FileViewFinder;
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
+use Shiriso\Kitsune\Core\Events\KitsuneCoreInitialized;
+use Shiriso\Kitsune\Core\Events\KitsuneCoreUpdated;
 
 class Kitsune implements IsKitsuneCore
 {
@@ -15,15 +17,18 @@ class Kitsune implements IsKitsuneCore
 
     protected bool $autoRefresh = false;
     protected bool $globalModeEnabled = false;
+    protected bool $initialized = false;
+    protected ?string $applicationLayout = null;
     protected ?string $globalNamespace = null;
     protected FileViewFinder $viewFinder;
 
     public function __construct()
     {
         $this->viewFinder = View::getFinder();
-        $this->globalModeEnabled = config('kitsune.core.global_mode.enabled', false);
+        $this->setGlobalModeEnabled(config('kitsune.core.global_mode.enabled', false));
         $this->setGlobalNamespace(config('kitsune.core.global_mode.namespace'));
         $this->setAutoRefresh(config('kitsune.core.auto_refresh', true));
+        $this->setApplicationLayout(config('kitsune.view.layout'));
     }
 
     /**
@@ -31,9 +36,15 @@ class Kitsune implements IsKitsuneCore
      *
      * @return void
      */
-    public function start(): void
+    public function initialize(): void
     {
-        $this->getKitsuneManager()->initialize();
+        if (!$this->initialized) {
+            $this->getKitsuneManager()->initialize();
+
+            $this->initialized = true;
+
+            KitsuneCoreInitialized::dispatch($this);
+        }
     }
 
     /**
@@ -43,11 +54,7 @@ class Kitsune implements IsKitsuneCore
      */
     public function enableGlobalMode(): bool
     {
-        if (!$this->globalModeEnabled()) {
-            return $this->globalModeEnabled = true;
-        }
-
-        return false;
+        return $this->setGlobalModeEnabled(true);
     }
 
     /**
@@ -57,13 +64,7 @@ class Kitsune implements IsKitsuneCore
      */
     public function disableGlobalMode(): bool
     {
-        if ($this->globalModeEnabled()) {
-            $this->globalModeEnabled = false;
-
-            return true;
-        }
-
-        return false;
+        return $this->setGlobalModeEnabled(false);
     }
 
     /**
@@ -74,6 +75,25 @@ class Kitsune implements IsKitsuneCore
     public function globalModeEnabled(): bool
     {
         return $this->globalModeEnabled;
+    }
+
+    /**
+     * Set if the global mode is enabled or not.
+     *
+     * @param  bool  $enabled
+     * @return bool
+     */
+    protected function setGlobalModeEnabled(bool $enabled): bool
+    {
+        if ($this->globalModeEnabled() !== $enabled) {
+            $this->globalModeEnabled = $enabled;
+
+            $this->dispatchCoreUpdatedEvent();
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -116,6 +136,35 @@ class Kitsune implements IsKitsuneCore
         return $this->getKitsuneManager()->hasNamespace($this->globalNamespace)
             ? $this->getKitsuneManager()->getNamespace($this->globalNamespace)
             : null;
+    }
+
+    /**
+     * Get the layout which is currently configured for the application.
+     *
+     * @return string|null
+     */
+    public function getApplicationLayout(): ?string
+    {
+        return $this->applicationLayout;
+    }
+
+    /**
+     * Set the layout for the application.
+     *
+     * @param  string|null  $layout
+     * @return bool
+     */
+    public function setApplicationLayout(?string $layout): bool
+    {
+        if ($this->applicationLayout !== $layout) {
+            $this->applicationLayout = $layout;
+
+            $this->dispatchCoreUpdatedEvent();
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -284,5 +333,15 @@ class Kitsune implements IsKitsuneCore
             $namespace->getPathsWithDerivatives(),
             $this->viewFinder->getHints()[$namespace->getName()] ?? null
         );
+    }
+
+    /**
+     * Dispatches the core updated event if the core has been initialized before.
+     *
+     * @return void
+     */
+    protected function dispatchCoreUpdatedEvent(): void
+    {
+        KitsuneCoreUpdated::dispatchIf($this->initialized, $this);
     }
 }

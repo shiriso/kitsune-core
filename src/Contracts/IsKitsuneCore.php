@@ -2,16 +2,26 @@
 
 namespace Shiriso\Kitsune\Core\Contracts;
 
+use Illuminate\Support\Arr;
+use Shiriso\Kitsune\Core\Events\KitsuneCoreInitialized;
 use Shiriso\Kitsune\Core\Kitsune;
 
 interface IsKitsuneCore
 {
     /**
+     * Configure the global ViewFinder-Paths accordingly to the given namespace.
+     *
+     * @param  string|IsSourceNamespace  $namespace
+     * @return bool
+     */
+    public function configureGlobalViewFinder(string|IsSourceNamespace $namespace): bool;
+
+    /**
      * Activates Kitsune for the application and configures the necessary services.
      *
      * @return void
      */
-    public function start(): void;
+    public function initialize(): void;
 
     /**
      * Configures the view sources accordingly to Kitsune.
@@ -28,12 +38,11 @@ interface IsKitsuneCore
     public function getGlobalNamespace(): ?IsSourceNamespace;
 
     /**
-     * Configure the global ViewFinder-Paths accordingly to the given namespace.
+     * Get the layout which is currently configured for the application.
      *
-     * @param  string|IsSourceNamespace  $namespace
-     * @return bool
+     * @return string|null
      */
-    public function configureGlobalViewFinder(string|IsSourceNamespace $namespace): bool;
+    public function getApplicationLayout(): ?string;
 
     /**
      * Disable the automatic updates of view sources when a namespace has been updated.
@@ -45,8 +54,11 @@ interface IsKitsuneCore
     /**
      * Activate the global mode for the given namespace, and make sure it is disabled for every other namespace.
      *
+     * If a namespace gets defined as global before existence, Kitsune will skip setting the global paths.
+     * When autoRefresh is activated, it will automatically be published once the namespace is set up.
+     *
      * @param  IsSourceNamespace|string|null  $namespace
-     * @return bool|null
+     * @return bool|null Returns null if nothing changed, false if no paths have been updated or true if it did.
      */
     public function setGlobalNamespace(IsSourceNamespace|string|null $namespace): ?bool;
 
@@ -104,16 +116,24 @@ interface IsKitsuneCore
     public function setAutoRefresh(bool $autoRefresh): static;
 
     /**
-     * Enable global mode for Kitsune.
-     *
-     * @return bool
-     */
-    public function enableGlobalMode(): bool;
-
-    /**
      * Determine if global mode is activated.
      *
      * @return bool
      */
     public function globalModeEnabled(): bool;
+
+    /**
+     * Set the layout for the application.
+     *
+     * @param  string|null  $layout
+     * @return bool
+     */
+    public function setApplicationLayout(?string $layout): bool;
+
+    /**
+     * Enable global mode for Kitsune.
+     *
+     * @return bool
+     */
+    public function enableGlobalMode(): bool;
 }

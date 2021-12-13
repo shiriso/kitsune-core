@@ -5,7 +5,7 @@ namespace Shiriso\Kitsune\Core\Events;
 use Illuminate\Foundation\Events\Dispatchable;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
 
-class KitsuneNamespaceUpdated
+class KitsuneSourceNamespaceCreated
 {
     use Dispatchable;
 

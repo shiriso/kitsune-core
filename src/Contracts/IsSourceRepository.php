@@ -73,14 +73,9 @@ interface IsSourceRepository
     public function getRegisteredPaths(): array;
 
     /**
-     * This method will assign an internal namespace which may be used to
-     * automatically report updates of the source to the namespace.
+     * Get the namespace the source is registered for.
      *
-     * This is important to let the namespace know, that it needs to
-     * compile a new list of sources when the paths are requested.
-     *
-     * @param  IsSourceNamespace  $namespace
-     * @return SourceRepository
+     * @return IsSourceNamespace
      */
-    public function assignNamespace(IsSourceNamespace $namespace): static;
+    public function getNamespace(): IsSourceNamespace;
 }
