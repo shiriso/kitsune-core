@@ -4,7 +4,6 @@ namespace Shiriso\Kitsune\Core\Listeners;
 
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
 
 class UpdateKitsuneForNamespace
 {

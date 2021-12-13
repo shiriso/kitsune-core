@@ -6,7 +6,6 @@ use Illuminate\Support\Arr;
 use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
 use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
 use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
-use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
 use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
 use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
 
@@ -302,7 +301,7 @@ class SourceNamespace implements IsSourceNamespace
      */
     public function setUpdateState(bool $state = true): bool
     {
-        if($this->hasUpdates |= $state) {
+        if ($this->hasUpdates |= $state) {
             $this->dispatchNamespaceUpdatedEvent();
         }
 

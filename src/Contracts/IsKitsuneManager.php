@@ -2,9 +2,6 @@
 
 namespace Shiriso\Kitsune\Core\Contracts;
 
-use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceCreated;
-use Shiriso\Kitsune\Core\KitsuneManager;
-
 interface IsKitsuneManager
 {
 

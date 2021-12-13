@@ -2,10 +2,6 @@
 
 namespace Shiriso\Kitsune\Core\Contracts;
 
-use Illuminate\Support\Arr;
-use Shiriso\Kitsune\Core\Events\KitsuneCoreInitialized;
-use Shiriso\Kitsune\Core\Kitsune;
-
 interface IsKitsuneCore
 {
     /**
