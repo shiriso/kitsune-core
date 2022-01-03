@@ -3,6 +3,7 @@
 namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
+use Kitsune\Core\Concerns\ManagesPaths;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Contracts\IsSourceNamespace;
@@ -11,6 +12,7 @@ use Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
 
 class SourceNamespace implements IsSourceNamespace
 {
+    use ManagesPaths;
     use UtilisesKitsune;
 
     protected ?KitsuneManager $manager;
@@ -20,7 +22,7 @@ class SourceNamespace implements IsSourceNamespace
 
     public function __construct(
         protected string $namespace,
-        protected bool $addDefaults = false,
+        protected bool $includeDefaults = false,
         protected string|DefinesPriority|null $priority = null,
         protected ?string $layout = null,
         protected string|array $paths = []
@@ -43,6 +45,55 @@ class SourceNamespace implements IsSourceNamespace
     }
 
     /**
+     * Enables the inclusion of laravel's default view paths.
+     *
+     * @return bool Returns true if this changed the configuration.
+     */
+    public function enableIncludeDefaults(): bool
+    {
+        return $this->setIncludeDefaults(true);
+    }
+
+    /**
+     * Disables the inclusion of laravel's default view paths.
+     *
+     * @return bool Returns true if this changed the configuration.
+     */
+    public function disableIncludeDefaults(): bool
+    {
+        return $this->setIncludeDefaults(false);
+    }
+
+    /**
+     * Defines if the default view paths should be included or not.
+     *
+     * @param  bool  $includeDefaults
+     * @return bool Returns true if this changed the configuration.
+     */
+    public function setIncludeDefaults(bool $includeDefaults): bool
+    {
+        if ($this->includeDefaults !== $includeDefaults) {
+            $this->includeDefaults = $includeDefaults;
+
+            $this->dispatchUpdatedEvent();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines if the namespace is supposed to include the default view sources.
+     *
+     * @return bool
+     */
+    public function shouldIncludeDefaults(): bool
+    {
+        return $this->includeDefaults;
+    }
+
+    /**
      * Set a new priority.
      *
      * @param  string|DefinesPriority  $priority
@@ -62,10 +113,6 @@ class SourceNamespace implements IsSourceNamespace
             $this->priority = $priority;
 
             return true;
-        }
-
-        if (is_string($this->priority)) {
-            dd($this->priority, debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5));
         }
 
         return false;
@@ -109,14 +156,14 @@ class SourceNamespace implements IsSourceNamespace
     /**
      * Set a new active layout.
      *
-     * @param  string  $layout
+     * @param  string|null  $layout
      * @return bool
      */
-    public function setLayout(string $layout): bool
+    public function setLayout(?string $layout): bool
     {
         if ($this->layout !== $layout) {
             $this->layout = $layout;
-            $this->setUpdateState();
+            $this->dispatchUpdatedEvent();
 
             return true;
         }
@@ -168,6 +215,16 @@ class SourceNamespace implements IsSourceNamespace
     public function getSource(string $sourceRepository): SourceRepository
     {
         return $this->sourceRepositories[$sourceRepository];
+    }
+
+    /**
+     * Get a list of registered source repositories.
+     *
+     * @return array
+     */
+    public function getRegisteredSources(): array
+    {
+        return array_keys($this->sourceRepositories);
     }
 
     /**
@@ -225,10 +282,10 @@ class SourceNamespace implements IsSourceNamespace
      * Get a compiled list of paths from the namespace, sources and potentially Laravel's application
      * paths with derivatives for the application layout and the namespace's layout.
      *
-     * @param  bool  $addDefaultPaths  When true, it will add the applications default paths from Laravel
+     * @param  bool  $includeDefaultPaths  When true, it will add the applications default view paths
      * @return array
      */
-    public function getPathsWithDerivatives(bool $addDefaultPaths = false): array
+    public function getPathsWithDerivatives(bool $includeDefaultPaths = false): array
     {
         $sourcePathDerivatives = [];
         $applicationLayout = $this->getKitsuneCore()->getApplicationLayout();
@@ -236,7 +293,8 @@ class SourceNamespace implements IsSourceNamespace
         $prioritizedSources = $this->getPaths();
 
         foreach (
-            $this->addDefaults || $addDefaultPaths ? $this->getKitsuneHelper()->getLaravelViewPathsByPriority() : []
+            $this->includeDefaults || $includeDefaultPaths ? $this->getKitsuneHelper()->getLaravelViewPathsByPriority(
+            ) : []
             as $priorityValue => $paths
         ) {
             $prioritizedSources[$priorityValue] = array_merge(
@@ -289,32 +347,21 @@ class SourceNamespace implements IsSourceNamespace
     }
 
     /**
-     * Determines the update state and sets it the namespace.
+     * Determines the update state and dispatches the event if something changed.
      *
-     * As the nested mutators to sources and similar will return
-     * if the setter actually changed something, we do not want
-     * to set the hasUpdates every time a setter was called,
-     * but only when there was an actual change to it.
+     * As nested resources may propagate their changes by using events or
+     * similar, we offer the possibility to pass if something updated.
      *
-     * @param  bool  $state
+     * @param  bool  $updated
      * @return bool
      */
-    public function setUpdateState(bool $state = true): bool
+    public function dispatchUpdatedEvent(bool $updated = true): bool
     {
-        if ($this->hasUpdates |= $state) {
-            $this->dispatchNamespaceUpdatedEvent();
+        if ($this->hasUpdates |= $updated) {
+            KitsuneSourceNamespaceUpdated::dispatch($this);
         }
 
         return $this->hasUpdates;
     }
 
-    /**
-     * Dispatches the KitsuneNamespaceUpdated event if the given flag is true.
-     *
-     * @return void
-     */
-    protected function dispatchNamespaceUpdatedEvent(): void
-    {
-        KitsuneSourceNamespaceUpdated::dispatch($this);
-    }
 }

@@ -2,13 +2,14 @@
 
 namespace Kitsune\Core\Contracts;
 
+use Kitsune\Core\Exceptions\MissingPathsPropertyException;
 use Kitsune\Core\SourceRepository;
 
 interface IsSourceNamespace
 {
     public function __construct(
         string $namespace,
-        bool $addDefaults = false,
+        bool $includeDefaults = false,
         string|DefinesPriority|null $priority = null,
         ?string $layout = null,
         string|array $paths = []
@@ -64,6 +65,35 @@ interface IsSourceNamespace
     public function getPaths(): array;
 
     /**
+     * Register a path as source.
+     *
+     * If a path was added, it will dispatch also automatically dispatch
+     * an updated event for the resource, if the "dispatchUpdatedEvent"
+     * method exists in the current context.
+     *
+     * @param  string|array  $path
+     * @param  bool  $prepend
+     * @return bool
+     * @throws MissingPathsPropertyException
+     */
+    public function addPath(string|array $path, bool $prepend = false): bool;
+
+    /**
+     * Prepend a path to the registered $vendorPaths.
+     *
+     * @param  string|array  $path
+     * @return bool
+     */
+    public function prependPath(string|array $path): bool;
+
+    /**
+     * Get the registered source paths without transformations.
+     *
+     * @return array
+     */
+    public function getRegisteredPaths(): array;
+
+    /**
      * Set a new priority.
      *
      * @param  string|DefinesPriority  $priority
@@ -72,17 +102,15 @@ interface IsSourceNamespace
     public function setPriority(string|DefinesPriority $priority): bool;
 
     /**
-     * Determines the update state and sets it the namespace.
+     * Determines the update state and dispatches the event if something changed.
      *
-     * As the nested mutators to sources and similar will return
-     * if the setter actually changed something, we do not want
-     * to set the hasUpdates every time a setter was called,
-     * but only when there was an actual change to it.
+     * As nested resources may propagate their changes by using events or
+     * similar, we offer the possibility to pass if something updated.
      *
-     * @param  bool  $state
+     * @param  bool  $updated
      * @return bool
      */
-    public function setUpdateState(bool $state = true): bool;
+    public function dispatchUpdatedEvent(bool $updated = true): bool;
 
     /**
      * Get the currently activated layout.
@@ -121,10 +149,10 @@ interface IsSourceNamespace
      * Get a compiled list of paths from the namespace, sources and potentially Laravel's application
      * paths with derivatives for the application layout and the namespace's layout.
      *
-     * @param  bool  $addDefaultPaths  When true, it will add the applications default paths from Laravel
+     * @param  bool  $includeDefaultPaths  When true, it will add the applications default view paths
      * @return array
      */
-    public function getPathsWithDerivatives(bool $addDefaultPaths = false): array;
+    public function getPathsWithDerivatives(bool $includeDefaultPaths = false): array;
 
     /**
      * Get the repository for the alias or create a new one if it does not exist.
@@ -151,4 +179,40 @@ interface IsSourceNamespace
      * @return $this
      */
     public function setSourcePriority(string $source, string|DefinesPriority $priority): static;
+
+    /**
+     * Get a list of registered source repositories.
+     *
+     * @return array
+     */
+    public function getRegisteredSources(): array;
+
+    /**
+     * Defines if the default view paths should be included or not.
+     *
+     * @param  bool  $includeDefaults
+     * @return bool Returns true if this changed the configuration.
+     */
+    public function setIncludeDefaults(bool $includeDefaults): bool;
+
+    /**
+     * Determines if the namespace is supposed to include the default view sources.
+     *
+     * @return bool
+     */
+    public function shouldIncludeDefaults(): bool;
+
+    /**
+     * Enables the inclusion of laravel's default view paths.
+     *
+     * @return bool Returns true if this changed the configuration.
+     */
+    public function enableIncludeDefaults(): bool;
+
+    /**
+     * Disables the inclusion of laravel's default view paths.
+     *
+     * @return bool Returns true if this changed the configuration.
+     */
+    public function disableIncludeDefaults(): bool;
 }

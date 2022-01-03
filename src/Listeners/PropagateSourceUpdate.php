@@ -26,6 +26,6 @@ class PropagateSourceUpdate
      */
     public function __invoke(KitsuneSourceRepositoryUpdated $event)
     {
-        $event->namespace->setUpdateState();
+        $event->namespace->dispatchUpdatedEvent();
     }
 }

@@ -4,6 +4,7 @@ namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Kitsune\Core\Concerns\ManagesPaths;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Contracts\IsSourceNamespace;
@@ -13,6 +14,7 @@ use Kitsune\Core\Exceptions\MissingBasePathException;
 
 class SourceRepository implements IsSourceRepository
 {
+    use ManagesPaths;
     use UtilisesKitsune;
 
     /**
@@ -79,41 +81,6 @@ class SourceRepository implements IsSourceRepository
     }
 
     /**
-     * Prepend a path to the registered $vendorPaths.
-     *
-     * @param  string|array  $path
-     * @return bool
-     */
-    public function prependPath(string|array $path): bool
-    {
-        return $this->addPath($path, true);
-    }
-
-    /**
-     * Register a path as source.
-     *
-     * @param  string|array  $path
-     * @param  bool  $prepend
-     * @return bool
-     */
-    public function addPath(string|array $path, bool $prepend = false): bool
-    {
-        $updated = false;
-
-        foreach (Arr::wrap($path) as $path) {
-            if (!in_array($path, $this->paths, true)) {
-                $prepend ? array_unshift($this->paths, $path) : $this->paths[] = $path;
-
-                $updated = true;
-            }
-        }
-
-        $updated && $this->dispatchRepositoryUpdatedEvent();
-
-        return $updated;
-    }
-
-    /**
      * Get the source paths which have been registered in the repository.
      *
      * @return array
@@ -123,16 +90,6 @@ class SourceRepository implements IsSourceRepository
         $basePath = $this->getBasePath();
 
         return array_map(fn($path) => $basePath.$path, $this->paths);
-    }
-
-    /**
-     * Get the registered source paths without transformations.
-     *
-     * @return array
-     */
-    public function getRegisteredPaths(): array
-    {
-        return $this->paths;
     }
 
     /**

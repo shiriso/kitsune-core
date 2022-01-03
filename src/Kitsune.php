@@ -120,7 +120,7 @@ class Kitsune implements IsKitsuneCore
         }
 
         if ($registeredNamespace = $this->getGlobalNamespace()) {
-            return $registeredNamespace->setUpdateState();
+            return $registeredNamespace->dispatchUpdatedEvent();
         }
 
         return null;

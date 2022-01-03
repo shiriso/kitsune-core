@@ -29,7 +29,7 @@ return [
      | "layout": Define a layout to be used only within the namespace.
      | "paths": Defines additional paths which will be
      |                 added to the namespace.
-     | "add_defaults": Usually Laravel's source will not be added,
+     | "include_defaults": Usually Laravel's source will not be included,
      |                 but if you desire to do so, you can
      |                 achieve this using this flag.
      | "priority": A higher priority will result in views taking
