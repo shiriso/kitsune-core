@@ -1,6 +1,6 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Exceptions;
+namespace Kitsune\Core\Exceptions;
 
 use Exception;
 use Throwable;

@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Exceptions;
+namespace Kitsune\Core\Exceptions;
 
 use Exception;
-use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Contracts\IsSourceNamespace;
 use Throwable;
 
 class InvalidSourceNamespaceException extends Exception

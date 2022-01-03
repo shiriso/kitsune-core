@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Listeners;
+namespace Kitsune\Core\Listeners;
 
-use Shiriso\Kitsune\Core\Events\KitsuneCoreInitialized;
-use Shiriso\Kitsune\Core\Events\KitsuneCoreUpdated;
+use Kitsune\Core\Events\KitsuneCoreInitialized;
+use Kitsune\Core\Events\KitsuneCoreUpdated;
 
 class CoreInitialized
 {

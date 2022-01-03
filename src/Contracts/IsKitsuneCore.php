@@ -1,6 +1,6 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Contracts;
+namespace Kitsune\Core\Contracts;
 
 interface IsKitsuneCore
 {

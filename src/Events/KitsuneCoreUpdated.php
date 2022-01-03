@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Events;
+namespace Kitsune\Core\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
+use Kitsune\Core\Contracts\IsKitsuneCore;
 
 class KitsuneCoreUpdated
 {

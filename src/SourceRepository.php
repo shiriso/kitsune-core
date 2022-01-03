@@ -1,15 +1,15 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
-use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
-use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
-use Shiriso\Kitsune\Core\Exceptions\MissingBasePathException;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Contracts\IsSourceRepository;
+use Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
+use Kitsune\Core\Exceptions\MissingBasePathException;
 
 class SourceRepository implements IsSourceRepository
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
-use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
-use Shiriso\Kitsune\Core\Exceptions\InvalidPriorityException;
+use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Exceptions\InvalidPriorityException;
 
 class KitsunePriority implements DefinesPriority
 {

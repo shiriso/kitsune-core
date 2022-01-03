@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Middleware;
+namespace Kitsune\Core\Middleware;
 
 use Closure;
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Concerns\UtilisesKitsune;
 
 class KitsuneLayoutMiddleware
 {

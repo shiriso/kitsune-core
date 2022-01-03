@@ -1,11 +1,11 @@
 <?php
 
-use Shiriso\Kitsune\Core\Kitsune;
-use Shiriso\Kitsune\Core\KitsuneHelper;
-use Shiriso\Kitsune\Core\KitsuneManager;
-use Shiriso\Kitsune\Core\KitsunePriority;
-use Shiriso\Kitsune\Core\SourceNamespace;
-use Shiriso\Kitsune\Core\SourceRepository;
+use Kitsune\Core\Kitsune;
+use Kitsune\Core\KitsuneHelper;
+use Kitsune\Core\KitsuneManager;
+use Kitsune\Core\KitsunePriority;
+use Kitsune\Core\SourceNamespace;
+use Kitsune\Core\SourceRepository;
 
 return [
     /*

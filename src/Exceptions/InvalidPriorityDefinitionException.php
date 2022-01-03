@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Exceptions;
+namespace Kitsune\Core\Exceptions;
 
 use Exception;
-use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Contracts\DefinesPriority;
 use Throwable;
 
 class InvalidPriorityDefinitionException extends Exception

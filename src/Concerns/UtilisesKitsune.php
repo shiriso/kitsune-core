@@ -1,10 +1,10 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Concerns;
+namespace Kitsune\Core\Concerns;
 
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
+use Kitsune\Core\Contracts\IsKitsuneCore;
+use Kitsune\Core\Contracts\IsKitsuneHelper;
+use Kitsune\Core\Contracts\IsKitsuneManager;
 
 /**
  * This trait only offers basic functionalities to request Kitsune's services in a way

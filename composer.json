@@ -33,7 +33,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Shiriso\\Kitsune\\Core\\": "src"
+      "Kitsune\\Core\\": "src"
     },
     "files": [
       "src/Helpers/array.php"
@@ -49,12 +49,12 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Shiriso\\Kitsune\\Core\\KitsuneCoreServiceProvider"
+        "Kitsune\\Core\\KitsuneCoreServiceProvider"
       ],
       "aliases": {
-        "Kitsune": "Shiriso\\Kitsune\\Core\\Facades\\KitsuneCoreFacade",
-        "KitsuneHelper": "Shiriso\\Kitsune\\Core\\Facades\\KitsuneHelperFacade",
-        "KitsuneManager": "Shiriso\\Kitsune\\Core\\Facades\\KitsuneManagerFacade"
+        "Kitsune": "Kitsune\\Core\\Facades\\KitsuneCoreFacade",
+        "KitsuneHelper": "Kitsune\\Core\\Facades\\KitsuneHelperFacade",
+        "KitsuneManager": "Kitsune\\Core\\Facades\\KitsuneManagerFacade"
       }
     }
   }

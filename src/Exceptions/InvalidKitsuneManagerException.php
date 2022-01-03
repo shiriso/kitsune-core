@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Exceptions;
+namespace Kitsune\Core\Exceptions;
 
 use Exception;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
+use Kitsune\Core\Contracts\IsKitsuneManager;
 use Throwable;
 
 class InvalidKitsuneManagerException extends Exception

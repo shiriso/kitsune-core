@@ -1,15 +1,15 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
-use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
-use Shiriso\Kitsune\Core\Events\KitsuneCoreInitialized;
-use Shiriso\Kitsune\Core\Events\KitsuneCoreUpdated;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\IsKitsuneCore;
+use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Events\KitsuneCoreInitialized;
+use Kitsune\Core\Events\KitsuneCoreUpdated;
 
 class Kitsune implements IsKitsuneCore
 {

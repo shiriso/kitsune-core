@@ -1,14 +1,14 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Contracts;
+namespace Kitsune\Core\Contracts;
 
 use Illuminate\Support\Collection;
-use Shiriso\Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
-use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
+use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
+use Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
+use Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
+use Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
+use Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
+use Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
 
 interface IsKitsuneHelper
 {

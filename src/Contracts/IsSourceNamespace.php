@@ -1,8 +1,8 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Contracts;
+namespace Kitsune\Core\Contracts;
 
-use Shiriso\Kitsune\Core\SourceRepository;
+use Kitsune\Core\SourceRepository;
 
 interface IsSourceNamespace
 {

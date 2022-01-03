@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Listeners;
+namespace Kitsune\Core\Listeners;
 
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
 
 class UpdateKitsuneForNamespace
 {

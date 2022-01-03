@@ -1,8 +1,8 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Contracts;
+namespace Kitsune\Core\Contracts;
 
-use Shiriso\Kitsune\Core\Exceptions\MissingBasePathException;
+use Kitsune\Core\Exceptions\MissingBasePathException;
 
 interface IsSourceRepository
 {

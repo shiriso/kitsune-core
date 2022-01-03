@@ -1,24 +1,24 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneCore;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
-use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
-use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
-use Shiriso\Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
-use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
-use Shiriso\Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
-use Shiriso\Kitsune\Core\Exceptions\PriorityDefinitionNotEnumException;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Contracts\IsKitsuneCore;
+use Kitsune\Core\Contracts\IsKitsuneHelper;
+use Kitsune\Core\Contracts\IsKitsuneManager;
+use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Contracts\IsSourceRepository;
+use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
+use Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
+use Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
+use Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
+use Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
+use Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
+use Kitsune\Core\Exceptions\PriorityDefinitionNotEnumException;
 
 class KitsuneHelper implements IsKitsuneHelper
 {

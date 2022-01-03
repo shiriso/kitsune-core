@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Events;
+namespace Kitsune\Core\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
+use Kitsune\Core\Contracts\IsKitsuneManager;
 
 class KitsuneManagerInitialized
 {

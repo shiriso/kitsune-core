@@ -1,13 +1,13 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Contracts\DefinesPriority;
-use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
+use Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
 
 class SourceNamespace implements IsSourceNamespace
 {

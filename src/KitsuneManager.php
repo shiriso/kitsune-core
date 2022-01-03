@@ -1,12 +1,12 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneManager;
-use Shiriso\Kitsune\Core\Contracts\IsSourceNamespace;
-use Shiriso\Kitsune\Core\Events\KitsuneManagerInitialized;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceCreated;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\IsKitsuneManager;
+use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Events\KitsuneManagerInitialized;
+use Kitsune\Core\Events\KitsuneSourceNamespaceCreated;
 
 class KitsuneManager implements IsKitsuneManager
 {

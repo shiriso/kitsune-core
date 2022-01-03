@@ -1,6 +1,6 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Facades;
+namespace Kitsune\Core\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

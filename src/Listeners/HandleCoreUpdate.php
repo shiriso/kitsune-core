@@ -1,8 +1,8 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Listeners;
+namespace Kitsune\Core\Listeners;
 
-use Shiriso\Kitsune\Core\Events\KitsuneCoreUpdated;
+use Kitsune\Core\Events\KitsuneCoreUpdated;
 
 class HandleCoreUpdate
 {

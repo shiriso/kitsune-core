@@ -1,24 +1,24 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use Shiriso\Kitsune\Core\Concerns\UtilisesKitsune;
-use Shiriso\Kitsune\Core\Contracts\IsKitsuneHelper;
-use Shiriso\Kitsune\Core\Events\KitsuneCoreInitialized;
-use Shiriso\Kitsune\Core\Events\KitsuneCoreUpdated;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
-use Shiriso\Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
-use Shiriso\Kitsune\Core\Exceptions\InvalidKitsuneHelperException;
-use Shiriso\Kitsune\Core\Listeners\CoreInitialized;
-use Shiriso\Kitsune\Core\Listeners\HandleCoreUpdate;
-use Shiriso\Kitsune\Core\Listeners\PropagateSourceUpdate;
-use Shiriso\Kitsune\Core\Listeners\UpdateKitsuneForNamespace;
-use Shiriso\Kitsune\Core\Middleware\KitsuneGlobalModeMiddleware;
-use Shiriso\Kitsune\Core\Middleware\KitsuneLayoutMiddleware;
-use Shiriso\Kitsune\Core\Middleware\KitsuneMiddleware;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\IsKitsuneHelper;
+use Kitsune\Core\Events\KitsuneCoreInitialized;
+use Kitsune\Core\Events\KitsuneCoreUpdated;
+use Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
+use Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
+use Kitsune\Core\Exceptions\InvalidKitsuneHelperException;
+use Kitsune\Core\Listeners\CoreInitialized;
+use Kitsune\Core\Listeners\HandleCoreUpdate;
+use Kitsune\Core\Listeners\PropagateSourceUpdate;
+use Kitsune\Core\Listeners\UpdateKitsuneForNamespace;
+use Kitsune\Core\Middleware\KitsuneGlobalModeMiddleware;
+use Kitsune\Core\Middleware\KitsuneLayoutMiddleware;
+use Kitsune\Core\Middleware\KitsuneMiddleware;
 
 class KitsuneCoreServiceProvider extends ServiceProvider
 {

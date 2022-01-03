@@ -1,9 +1,9 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Events;
+namespace Kitsune\Core\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use Shiriso\Kitsune\Core\Contracts\IsSourceRepository;
+use Kitsune\Core\Contracts\IsSourceRepository;
 
 class KitsuneSourceRepositoryCreated
 {
