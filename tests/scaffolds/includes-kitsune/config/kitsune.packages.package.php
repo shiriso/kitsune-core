@@ -24,7 +24,7 @@ return [
      */
     'namespace' => [
         'layout' => 'testing',
-        'paths'  => resource_path('/views/package-test'),
+        'paths'  => resource_path('views/package-test'),
         'include_defaults' => true,
         'priority' => 'low',
     ],
@@ -47,14 +47,14 @@ return [
      */
     'sources' => [
         'testing' => [
-            'base_path' => resource_path('/views/package/source/testing'),
+            'base_path' => resource_path('views/package/source/testing'),
             'paths' => [
                 'path',
             ],
             'priority' => 'high',
         ],
         'published' => [
-            'base_path' => resource_path('/views/package/source/published'),
+            'base_path' => resource_path('views/package/source/published'),
             'paths' => [
                 'path',
             ],
