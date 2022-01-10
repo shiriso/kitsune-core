@@ -88,7 +88,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
     protected function getHelperClass(): string
     {
         if (is_a(
-            $helperClass = config('kitsune.core.service.helper', Kitsune::class),
+            $helperClass = config('kitsune.core.service.helper', KitsuneHelper::class),
             IsKitsuneHelper::class,
             true
         )) {
