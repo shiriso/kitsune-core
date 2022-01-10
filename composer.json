@@ -28,8 +28,8 @@
     "php": "^8.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^6.0",
-    "phpunit/phpunit": "^8.0"
+    "orchestra/testbench": "^6.23",
+    "phpunit/phpunit": "^9.5"
   },
   "autoload": {
     "psr-4": {
@@ -38,6 +38,11 @@
     "files": [
       "src/Helpers/array.php"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Kitsune\\Core\\Tests\\": "tests"
+    }
   },
   "scripts": {
     "test": "vendor/bin/phpunit",
