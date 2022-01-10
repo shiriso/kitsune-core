@@ -59,9 +59,14 @@ trait ManagesPaths
      * Get the registered source paths without transformations.
      *
      * @return array
+     * @throws MissingPathsPropertyException
      */
     public function getRegisteredPaths(): array
     {
+        if (!property_exists($this, 'paths')) {
+            throw new MissingPathsPropertyException(static::class);
+        }
+
         return $this->paths;
     }
 }
