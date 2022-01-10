@@ -4,7 +4,7 @@ namespace Kitsune\Core\Contracts;
 
 use Kitsune\Core\Exceptions\MissingBasePathException;
 
-interface IsSourceRepository extends CanManagesPaths
+interface IsSourceRepository extends CanManagePaths
 {
     /**
      * Creates a new repository for the given alias.

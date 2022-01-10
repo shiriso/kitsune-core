@@ -4,7 +4,7 @@ namespace Kitsune\Core\Contracts;
 
 use Kitsune\Core\Exceptions\MissingPathsPropertyException;
 
-interface CanManagesPaths
+interface CanManagePaths
 {
     /**
      * Register a path as source.

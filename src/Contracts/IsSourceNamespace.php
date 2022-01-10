@@ -4,7 +4,7 @@ namespace Kitsune\Core\Contracts;
 
 use Kitsune\Core\SourceRepository;
 
-interface IsSourceNamespace extends CanManagesPaths
+interface IsSourceNamespace extends CanManagePaths
 {
     public function __construct(
         string $namespace,
