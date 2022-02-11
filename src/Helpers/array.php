@@ -1,18 +1,16 @@
 <?php
 
-if (!function_exists('array_map_with_keys')) {
-    function array_map_with_keys(callable $callable, array ...$arrays): array
-    {
-        $mappedArray = [];
+function array_map_with_keys(callable $callable, array ...$arrays): array
+{
+    $mappedArray = [];
 
-        foreach ($arrays as $array) {
-            foreach ($array as $key => $value) {
-                $result = $callable($value, $key);
+    foreach ($arrays as $array) {
+        foreach ($array as $key => $value) {
+            $result = $callable($value, $key);
 
-                $mappedArray = array_replace($mappedArray, $result);
-            }
+            $mappedArray = array_replace($mappedArray, $result);
         }
-
-        return $mappedArray;
     }
+
+    return $mappedArray;
 }
