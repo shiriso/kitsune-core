@@ -101,7 +101,7 @@ class SourceRepository implements IsSourceRepository
     public function getBasePath(): string
     {
         if ($basePath = $this->basePath ?? $this->getDefaultValue('basePath')) {
-            return Str::finish($basePath, '/');
+            return Str::finish($basePath, DIRECTORY_SEPARATOR);
         }
 
         throw new MissingBasePathException($this->alias);
