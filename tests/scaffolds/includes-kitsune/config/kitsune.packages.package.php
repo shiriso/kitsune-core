@@ -24,7 +24,7 @@ return [
      */
     'namespace' => [
         'layout' => 'testing',
-        'paths'  => resource_path('views/package-test'),
+        'paths'  => resource_path('views/package/namespace'),
         'include_defaults' => true,
         'priority' => 'low',
     ],
