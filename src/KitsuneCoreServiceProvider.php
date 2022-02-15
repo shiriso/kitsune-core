@@ -85,7 +85,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
      * @return string
      * @throws InvalidKitsuneHelperException
      */
-    protected function getHelperClass(): string
+    public function getHelperClass(): string
     {
         if (is_a(
             $helperClass = config('kitsune.core.service.helper', KitsuneHelper::class),
