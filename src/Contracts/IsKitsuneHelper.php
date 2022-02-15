@@ -163,4 +163,10 @@ interface IsKitsuneHelper
      * @return bool
      */
     public function pathsHaveUpdates(array $newPaths, ?array $oldPaths): bool;
+
+    /**
+     * @param  ImplementsPriority  $object
+     * @return string
+     */
+    public function getDefaultIdentifier(ImplementsPriority $object): string;
 }

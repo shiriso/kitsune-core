@@ -3,6 +3,7 @@
 namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
+use Kitsune\Core\Concerns\HasPriority;
 use Kitsune\Core\Concerns\ManagesPaths;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\DefinesPriority;
@@ -12,6 +13,7 @@ use Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
 
 class SourceNamespace implements IsSourceNamespace
 {
+    use HasPriority;
     use ManagesPaths;
     use UtilisesKitsune;
 
@@ -29,8 +31,7 @@ class SourceNamespace implements IsSourceNamespace
     ) {
         $this->paths = Arr::wrap($this->paths);
 
-        $this->setPriority($this->priority ?? 'namespace');
-
+        $this->setPriority($this->priority);
         $this->initializeConfiguredSources();
     }
 
@@ -91,41 +92,6 @@ class SourceNamespace implements IsSourceNamespace
     public function shouldIncludeDefaults(): bool
     {
         return $this->includeDefaults;
-    }
-
-    /**
-     * Set a new priority.
-     *
-     * @param  string|DefinesPriority  $priority
-     * @return bool
-     */
-    public function setPriority(string|DefinesPriority $priority): bool
-    {
-        if (is_string($priority)) {
-            $priority = $this->getKitsuneHelper()->getPriorityDefault($priority);
-        }
-
-        if (is_string($this->priority)) {
-            $this->priority = $this->getKitsuneHelper()->getPriorityDefault($this->priority);
-        }
-
-        if (!$this->priority || $this->priority->getValue() !== $priority->getValue()) {
-            $this->priority = $priority;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Get the priority of the namespace.
-     *
-     * @return DefinesPriority
-     */
-    public function getPriority(): DefinesPriority
-    {
-        return $this->priority;
     }
 
     /**

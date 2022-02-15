@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Contracts\ImplementsPriority;
 use Kitsune\Core\Contracts\IsKitsuneCore;
 use Kitsune\Core\Contracts\IsKitsuneHelper;
 use Kitsune\Core\Contracts\IsKitsuneManager;
@@ -145,13 +146,15 @@ class KitsuneHelper implements IsKitsuneHelper
     /**
      * Retrieves the default priority for a given type.
      *
-     * @param  string|DefinesPriority  $type
+     * @param  string|DefinesPriority|ImplementsPriority  $type
      * @return DefinesPriority
      */
-    public function getPriorityDefault(string|DefinesPriority $type): DefinesPriority
+    public function getPriorityDefault(string|DefinesPriority|ImplementsPriority $type): DefinesPriority
     {
         if (is_a($type, DefinesPriority::class)) {
             return $type;
+        } elseif (is_a($type, ImplementsPriority::class)) {
+            $type = $this->getDefaultIdentifier($type);
         }
 
         if ($priority = config('kitsune.core.priority.defaults.'.$type)) {
@@ -169,6 +172,22 @@ class KitsuneHelper implements IsKitsuneHelper
         return $this->priorityDefinitionIsEnum()
             ? $this->getPriorityEnum($defaultPriority)
             : $this->getPriorityObject($defaultPriority);
+    }
+
+    /**
+     * @param  ImplementsPriority  $object
+     * @return string
+     */
+    public function getDefaultIdentifier(ImplementsPriority $object): string
+    {
+        return match ($object) {
+            is_a($object, IsSourceNamespace::class, true) => 'namespace',
+            is_a($object, IsSourceRepository::class, true) => match($object->getName()) {
+                'published', 'vendor' => $object->getName(),
+                default => 'source'
+            },
+            default => 'medium'
+        };
     }
 
     /**

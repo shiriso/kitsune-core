@@ -4,7 +4,7 @@ namespace Kitsune\Core\Contracts;
 
 use Kitsune\Core\SourceRepository;
 
-interface IsSourceNamespace extends CanManagePaths
+interface IsSourceNamespace extends CanManagePaths, ImplementsPriority
 {
     public function __construct(
         string $namespace,
@@ -32,13 +32,6 @@ interface IsSourceNamespace extends CanManagePaths
     public function hasSource(string $sourceRepository): bool;
 
     /**
-     * Get the priority of the namespace.
-     *
-     * @return DefinesPriority
-     */
-    public function getPriority(): DefinesPriority;
-
-    /**
      * Add a new SourceRepository to the current SourceNamespace.
      *
      * Keep in mind that the $basePath is required, if the source is not defined in the config.
@@ -62,14 +55,6 @@ interface IsSourceNamespace extends CanManagePaths
      * @return array
      */
     public function getPaths(): array;
-
-    /**
-     * Set a new priority.
-     *
-     * @param  string|DefinesPriority  $priority
-     * @return bool
-     */
-    public function setPriority(string|DefinesPriority $priority): bool;
 
     /**
      * Determines the update state and dispatches the event if something changed.

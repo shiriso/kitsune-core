@@ -4,9 +4,11 @@ namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Kitsune\Core\Concerns\HasPriority;
 use Kitsune\Core\Concerns\ManagesPaths;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Contracts\ImplementsPriority;
 use Kitsune\Core\Contracts\IsSourceNamespace;
 use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
@@ -14,6 +16,7 @@ use Kitsune\Core\Exceptions\MissingBasePathException;
 
 class SourceRepository implements IsSourceRepository
 {
+    use HasPriority;
     use ManagesPaths;
     use UtilisesKitsune;
 
@@ -30,11 +33,18 @@ class SourceRepository implements IsSourceRepository
         $this->basePath ??= $this->getBasePath();
         $this->paths ??= $this->getDefaultPaths();
 
-        if (!is_a($this->priority, DefinesPriority::class)) {
-            $this->priority = $this->getDefaultPriority($this->priority);
-        }
+        $this->setPriority($this->priority);
+        $this->dispatchUpdatedEvent();
+    }
 
-        $this->dispatchRepositoryUpdatedEvent();
+    /**
+     * Returns the Name
+     *
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->alias;
     }
 
     /**
@@ -45,39 +55,6 @@ class SourceRepository implements IsSourceRepository
     public function getNamespace(): IsSourceNamespace
     {
         return $this->namespace;
-    }
-
-    /**
-     * Set a new priority.
-     *
-     * @param  string|DefinesPriority|null  $priority
-     * @return bool
-     */
-    public function setPriority(string|DefinesPriority|null $priority): bool
-    {
-        if (!is_a($priority, DefinesPriority::class)) {
-            $priority = $this->getDefaultPriority($priority);
-        }
-
-        if ($this->priority->getValue() !== $priority->getValue()) {
-            $this->priority = $priority;
-
-            $this->dispatchRepositoryUpdatedEvent();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Get the current priority.
-     *
-     * @return DefinesPriority
-     */
-    public function getPriority(): DefinesPriority
-    {
-        return $this->priority;
     }
 
     /**
@@ -118,17 +95,6 @@ class SourceRepository implements IsSourceRepository
     }
 
     /**
-     * Get the default priority for the source based on a given priority or the global default.
-     *
-     * @param  string|null  $priority
-     * @return DefinesPriority
-     */
-    protected function getDefaultPriority(?string $priority = null): DefinesPriority
-    {
-        return $this->getKitsuneHelper()->getPriorityDefault($priority ?? $this->getDefaultValue('priority', 'source'));
-    }
-
-    /**
      * Get the default value based on the global default source configurations.
      *
      * @param  string  $key
@@ -147,7 +113,7 @@ class SourceRepository implements IsSourceRepository
      *
      * @return void
      */
-    protected function dispatchRepositoryUpdatedEvent(): void
+    protected function dispatchUpdatedEvent(): void
     {
         KitsuneSourceRepositoryUpdated::dispatch($this);
     }
