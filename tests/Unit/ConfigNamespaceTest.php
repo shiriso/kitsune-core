@@ -19,7 +19,7 @@ class ConfigNamespaceTest extends AbstractNamespaceTestCase
             'config-default',
         ]);
 
-        app('kitsune.manager')->initializeNamespaces();
+        $this->getKitsuneManager()->initializeNamespaces();
     }
 
     /**
