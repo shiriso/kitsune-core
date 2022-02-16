@@ -21,9 +21,7 @@ trait ManagesPaths
      */
     public function addPath(string|array $path, bool $prepend = false): bool
     {
-        if (!property_exists($this, 'paths')) {
-            throw new MissingPathsPropertyException(static::class);
-        }
+        $this->validateIntegration();
 
         $updated = false;
 
@@ -63,10 +61,21 @@ trait ManagesPaths
      */
     public function getRegisteredPaths(): array
     {
+        $this->validateIntegration();
+
+        return $this->paths;
+    }
+
+    /**
+     * Validates that all necessary properties exist in the class.
+     *
+     * @return void
+     * @throws MissingPathsPropertyException
+     */
+    protected function validateIntegration(): void
+    {
         if (!property_exists($this, 'paths')) {
             throw new MissingPathsPropertyException(static::class);
         }
-
-        return $this->paths;
     }
 }
