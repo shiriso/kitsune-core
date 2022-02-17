@@ -136,9 +136,9 @@ class KitsuneHelper implements IsKitsuneHelper
     /**
      * Determine if the currently used priority definition is an enum or a regular class.
      *
-     * @return string
+     * @return bool
      */
-    public function priorityDefinitionIsEnum(): string
+    public function priorityDefinitionIsEnum(): bool
     {
         return function_exists('enum_exists') && enum_exists($this->getPriorityDefinition());
     }
@@ -180,9 +180,12 @@ class KitsuneHelper implements IsKitsuneHelper
      */
     public function getDefaultIdentifier(ImplementsPriority $object): string
     {
-        return match ($object) {
-            is_a($object, IsSourceNamespace::class, true) => 'namespace',
-            is_a($object, IsSourceRepository::class, true) => match($object->getName()) {
+        $type = is_a($object, IsSourceNamespace::class, true) ? 'namespace' :
+            (is_a($object, IsSourceRepository::class, true) ? 'source' : null);
+
+        return match ($type) {
+            'namespace' => 'namespace',
+            'source' => match ($object->getName()) {
                 'published', 'vendor' => $object->getName(),
                 default => 'source'
             },

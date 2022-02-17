@@ -143,9 +143,9 @@ interface IsKitsuneHelper
     /**
      * Determine if the currently used priority definition is an enum or a regular class.
      *
-     * @return string
+     * @return bool
      */
-    public function priorityDefinitionIsEnum(): string;
+    public function priorityDefinitionIsEnum(): bool;
 
     /**
      * Get the currently configured core class implementing ProvidesKitsuneCore.
