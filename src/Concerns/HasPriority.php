@@ -3,6 +3,7 @@
 namespace Kitsune\Core\Concerns;
 
 use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Exceptions\MissingPriorityPropertyException;
 
 trait HasPriority
 {
@@ -16,6 +17,8 @@ trait HasPriority
      */
     public function setPriority(string|DefinesPriority|null $priority): bool
     {
+        $this->validateHasPriorityIntegration();
+
         if (!is_a($priority, DefinesPriority::class)) {
             $priority = $this->getDefaultPriority($priority);
         }
@@ -44,6 +47,8 @@ trait HasPriority
      */
     public function getPriority(): DefinesPriority
     {
+        $this->validateHasPriorityIntegration();
+
         return $this->priority;
     }
 
@@ -56,5 +61,18 @@ trait HasPriority
     protected function getDefaultPriority(?string $priority = null): DefinesPriority
     {
         return $this->getKitsuneHelper()->getPriorityDefault($priority ?? $this);
+    }
+
+    /**
+     * Validates that all necessary properties exist in the class.
+     *
+     * @return void
+     * @throws MissingPriorityPropertyException
+     */
+    protected function validateHasPriorityIntegration(): void
+    {
+        if (!property_exists($this, 'priority')) {
+            throw new MissingPriorityPropertyException(static::class);
+        }
     }
 }
