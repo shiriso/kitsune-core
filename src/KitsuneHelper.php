@@ -17,6 +17,7 @@ use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
 use Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
 use Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
 use Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
+use Kitsune\Core\Exceptions\InvalidPriorityException;
 use Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
 use Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
 use Kitsune\Core\Exceptions\PriorityDefinitionNotEnumException;
@@ -199,6 +200,7 @@ class KitsuneHelper implements IsKitsuneHelper
      * @param  string  $priority
      * @return DefinesPriority
      * @throws PriorityDefinitionNotEnumException
+     * @throws InvalidPriorityException
      */
     protected function getPriorityEnum(string $priority): DefinesPriority
     {
@@ -208,13 +210,15 @@ class KitsuneHelper implements IsKitsuneHelper
             throw new PriorityDefinitionNotEnumException($priorityDefinition);
         }
 
-        return match ($priority) {
-            'least' => $priorityDefinition::LEAST,
-            'low' => $priorityDefinition::LOW,
-            'medium' => $priorityDefinition::MEDIUM,
-            'high' => $priorityDefinition::HIGH,
-            'important' => $priorityDefinition::IMPORTANT,
-        };
+        $enumPriorityCase = strtoupper($priority);
+
+        foreach($priorityDefinition::cases() as $priorityDefinition) {
+            if($priorityDefinition->name === $enumPriorityCase) {
+                return $priorityDefinition;
+            }
+        }
+
+        throw new InvalidPriorityException($priority);
     }
 
     protected function getPriorityObject(string $priority): DefinesPriority
