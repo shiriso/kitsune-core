@@ -14,20 +14,17 @@ class KitsunePriority implements DefinesPriority
         'high' => 40,
         'important' => 50,
     ];
-    protected string $priority;
 
     /**
      * Creates a new instance of a Priority.
      *
      * @throws InvalidPriorityException
      */
-    public function __construct(string $priority = 'medium')
+    public function __construct(protected string $priority = 'medium')
     {
         if (!array_key_exists($priority, $this->priorities)) {
             throw new InvalidPriorityException($priority);
         }
-
-        $this->priority = $priority;
     }
 
     /**
