@@ -35,9 +35,7 @@ trait ManagesPaths
             }
         }
 
-        if ($updated && method_exists($this, 'dispatchUpdatedEvent')) {
-            $this->dispatchUpdatedEvent();
-        }
+        $updated && method_exists($this, 'dispatchUpdatedEvent') && $this->dispatchUpdatedEvent();
 
         return $updated;
     }

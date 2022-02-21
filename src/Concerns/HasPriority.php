@@ -32,9 +32,7 @@ trait HasPriority
         if ($this->priority->getValue() !== $priority->getValue()) {
             $this->priority = $priority;
 
-            if (method_exists($this, 'dispatchUpdatedEvent')) {
-                $this->dispatchUpdatedEvent();
-            }
+            method_exists($this, 'dispatchUpdatedEvent') && $this->dispatchUpdatedEvent();
 
             return true;
         }
