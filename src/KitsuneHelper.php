@@ -6,6 +6,8 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\DefinesClassPriority;
+use Kitsune\Core\Contracts\DefinesEnumPriority;
 use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Contracts\ImplementsPriority;
 use Kitsune\Core\Contracts\IsKitsuneCore;
@@ -14,6 +16,7 @@ use Kitsune\Core\Contracts\IsKitsuneManager;
 use Kitsune\Core\Contracts\IsSourceNamespace;
 use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
+use Kitsune\Core\Exceptions\InvalidDefinesPriorityInterfaceUsage;
 use Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
 use Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
 use Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
@@ -201,6 +204,7 @@ class KitsuneHelper implements IsKitsuneHelper
      * @return DefinesPriority
      * @throws PriorityDefinitionNotEnumException
      * @throws InvalidPriorityException
+     * @throws InvalidDefinesPriorityInterfaceUsage
      */
     protected function getPriorityEnum(string $priority): DefinesPriority
     {
@@ -210,20 +214,29 @@ class KitsuneHelper implements IsKitsuneHelper
             throw new PriorityDefinitionNotEnumException($priorityDefinition);
         }
 
-        $enumPriorityCase = strtoupper($priority);
-
-        foreach($priorityDefinition::cases() as $priorityDefinition) {
-            if($priorityDefinition->name === $enumPriorityCase) {
-                return $priorityDefinition;
-            }
+        if(!is_a($priorityDefinition, DefinesEnumPriority::class, true)) {
+            throw new InvalidDefinesPriorityInterfaceUsage($priorityDefinition);
         }
 
-        throw new InvalidPriorityException($priority);
+        return $priorityDefinition::fromName($priority);
     }
 
+    /**
+     * Get the object reflecting a priority based on a class.
+     *
+     * @param  string  $priority
+     * @return DefinesPriority
+     * @throws InvalidDefinesPriorityInterfaceUsage
+     */
     protected function getPriorityObject(string $priority): DefinesPriority
     {
-        return new ($this->getPriorityDefinition())($priority);
+        $priorityDefinition = $this->getPriorityDefinition();
+
+        if(!is_a($priorityDefinition, DefinesClassPriority::class, true)) {
+            throw new InvalidDefinesPriorityInterfaceUsage($priorityDefinition);
+        }
+
+        return new ($priorityDefinition)($priority);
     }
 
     /**

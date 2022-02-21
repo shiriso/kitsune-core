@@ -2,10 +2,10 @@
 
 namespace Kitsune\Core;
 
-use Kitsune\Core\Contracts\DefinesPriority;
+use Kitsune\Core\Contracts\DefinesClassPriority;
 use Kitsune\Core\Exceptions\InvalidPriorityException;
 
-class KitsunePriority implements DefinesPriority
+class KitsunePriority implements DefinesClassPriority
 {
     protected array $priorities = [
         'least' => 10,
