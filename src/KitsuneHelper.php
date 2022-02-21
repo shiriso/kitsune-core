@@ -123,18 +123,24 @@ class KitsuneHelper implements IsKitsuneHelper
      *
      * @return string
      * @throws InvalidPriorityDefinitionException
+     * @throws InvalidDefinesPriorityInterfaceUsage
      */
     public function getPriorityDefinition(): string
     {
         if (is_a(
-            $priorityClass = config('kitsune.core.priority.definition', KitsunePriority::class),
+            $priorityDefinition = config('kitsune.core.priority.definition', KitsunePriority::class),
             DefinesPriority::class,
             true
         )) {
-            return $priorityClass;
+            if (!is_a($priorityDefinition, DefinesEnumPriority::class, true)
+                && !is_a($priorityDefinition, DefinesClassPriority::class, true)) {
+                throw new InvalidDefinesPriorityInterfaceUsage($priorityDefinition);
+            }
+
+            return $priorityDefinition;
         }
 
-        throw new InvalidPriorityDefinitionException($priorityClass);
+        throw new InvalidPriorityDefinitionException($priorityDefinition);
     }
 
     /**
@@ -214,10 +220,6 @@ class KitsuneHelper implements IsKitsuneHelper
             throw new PriorityDefinitionNotEnumException($priorityDefinition);
         }
 
-        if(!is_a($priorityDefinition, DefinesEnumPriority::class, true)) {
-            throw new InvalidDefinesPriorityInterfaceUsage($priorityDefinition);
-        }
-
         return $priorityDefinition::fromName($priority);
     }
 
@@ -231,10 +233,6 @@ class KitsuneHelper implements IsKitsuneHelper
     protected function getPriorityObject(string $priority): DefinesPriority
     {
         $priorityDefinition = $this->getPriorityDefinition();
-
-        if(!is_a($priorityDefinition, DefinesClassPriority::class, true)) {
-            throw new InvalidDefinesPriorityInterfaceUsage($priorityDefinition);
-        }
 
         return new ($priorityDefinition)($priority);
     }
