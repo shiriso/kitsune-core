@@ -20,8 +20,19 @@ class ManagesPathsTest extends AbstractTestCase
         $this->canManagePaths = new class ($this->referencePaths) implements CanManagePaths {
             use ManagesPaths;
 
+            protected bool $isUpdated = false;
+
             public function __construct(protected array $paths)
             {
+            }
+
+            protected function dispatchUpdatedEvent() {
+                $this->isUpdated = true;
+            }
+
+            public function isUpdated(): bool
+            {
+                return $this->isUpdated;
             }
         };
 
@@ -56,15 +67,48 @@ class ManagesPathsTest extends AbstractTestCase
      * @test
      * @return CanManagePaths
      */
-    public function canAppendPath(): CanManagePaths
+    public function hasDefaultConfiguration(): CanManagePaths
     {
-        $this->assertTrue($this->canManagePaths->addPath($this->appendPath()));
+        $canManagePaths = $this->canManagePaths;
+
+        $this->assertFalse($canManagePaths->isUpdated());
         $this->assertEquals(
-            [...$this->referencePaths, $this->appendPath()],
-            $this->canManagePaths->getRegisteredPaths()
+            $this->referencePaths,
+            $canManagePaths->getRegisteredPaths()
         );
 
-        return $this->canManagePaths;
+        return $canManagePaths;
+    }
+
+    /**
+     * @test
+     * @depends hasDefaultConfiguration
+     * @param  CanManagePaths  $canManagePaths
+     * @return CanManagePaths
+     */
+    public function doesNotUpdateOnExistingPath(CanManagePaths $canManagePaths): CanManagePaths
+    {
+        $this->assertFalse($canManagePaths->addPath($this->referencePaths));
+        $this->assertFalse($canManagePaths->isUpdated());
+
+        return $canManagePaths;
+    }
+
+    /**
+     * @test
+     * @depends doesNotUpdateOnExistingPath
+     * @param  CanManagePaths  $canManagePaths
+     * @return CanManagePaths
+     */
+    public function canAppendPath(CanManagePaths $canManagePaths): CanManagePaths
+    {
+        $this->assertTrue($canManagePaths->addPath($this->appendPath()));
+        $this->assertEquals(
+            [...$this->referencePaths, $this->appendPath()],
+            $canManagePaths->getRegisteredPaths()
+        );
+
+        return $canManagePaths;
     }
 
     /**
@@ -141,6 +185,19 @@ class ManagesPathsTest extends AbstractTestCase
         $this->assertFalse($canManagePaths->addPath($this->appendPathArray()));
         $this->assertFalse($canManagePaths->addPath($this->prependPath()));
         $this->assertFalse($canManagePaths->addPath($this->prependPathArray()));
+
+        return $canManagePaths;
+    }
+
+    /**
+     * @test
+     * @depends cantAddDuplicatePaths
+     * @param  CanManagePaths  $canManagePaths
+     * @return CanManagePaths
+     */
+    public function hasExecutedDispatchUpdatedEvent(CanManagePaths $canManagePaths): CanManagePaths
+    {
+        $this->assertTrue($canManagePaths->isUpdated());
 
         return $canManagePaths;
     }
