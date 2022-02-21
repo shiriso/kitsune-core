@@ -18,10 +18,10 @@ interface IsSourceNamespace extends CanManagePaths, ImplementsPriority
      * Prepend a source path for the given repository.
      *
      * @param  string|array  $path
-     * @param  string|array  $sourceRepository
+     * @param  string  $sourceRepository
      * @return bool
      */
-    public function prependPathToSource(string|array $path, string|array $sourceRepository): bool;
+    public function prependPathToSource(string|array $path, string $sourceRepository): bool;
 
     /**
      * Determine if the namespace has the specific source.
@@ -86,11 +86,11 @@ interface IsSourceNamespace extends CanManagePaths, ImplementsPriority
      * Register a source path for the given repository.
      *
      * @param  string|array  $path
-     * @param  string|array  $sourceRepository
+     * @param  string  $sourceRepository
      * @param  bool  $prepend
      * @return bool
      */
-    public function addPathToSource(string|array $path, string|array $sourceRepository, bool $prepend = false): bool;
+    public function addPathToSource(string|array $path, string $sourceRepository, bool $prepend = false): bool;
 
     /**
      * Set a new active layout.

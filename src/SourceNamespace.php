@@ -208,10 +208,10 @@ class SourceNamespace implements IsSourceNamespace
      * Prepend a source path for the given repository.
      *
      * @param  string|array  $path
-     * @param  string|array  $sourceRepository
+     * @param  string  $sourceRepository
      * @return bool
      */
-    public function prependPathToSource(string|array $path, string|array $sourceRepository): bool
+    public function prependPathToSource(string|array $path, string $sourceRepository): bool
     {
         return $this->addPathToSource($path, $sourceRepository, true);
     }
@@ -220,13 +220,13 @@ class SourceNamespace implements IsSourceNamespace
      * Register a source path for the given repository.
      *
      * @param  string|array  $path
-     * @param  string|array  $sourceRepository
+     * @param  string  $sourceRepository
      * @param  bool  $prepend
      * @return bool
      */
-    public function addPathToSource(string|array $path, string|array $sourceRepository, bool $prepend = false): bool
+    public function addPathToSource(string|array $path, string $sourceRepository, bool $prepend = false): bool
     {
-        return $this->getSource(...Arr::wrap($sourceRepository))->addPath($path, $prepend);
+        return $this->getSource($sourceRepository)->addPath($path, $prepend);
     }
 
     /**
