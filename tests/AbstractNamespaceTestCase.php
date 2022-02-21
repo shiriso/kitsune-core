@@ -5,6 +5,7 @@ namespace Kitsune\Core\Tests;
 use Illuminate\Support\Facades\Event;
 use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
 use Kitsune\Core\SourceNamespace;
 
@@ -139,7 +140,7 @@ abstract class AbstractNamespaceTestCase extends AbstractTestCase
     {
         return [
             resource_path('views/namespace/existing/append-array'),
-            resource_path('views/namespace/virtual/append-array'),
+            resource_path('views/namespace/fake/append-array'),
         ];
     }
 
@@ -152,7 +153,29 @@ abstract class AbstractNamespaceTestCase extends AbstractTestCase
     {
         return [
             resource_path('views/namespace/existing/prepend-array'),
-            resource_path('views/namespace/virtual/prepend-array'),
+            resource_path('views/namespace/fake/prepend-array'),
         ];
+    }
+
+    /**
+     * Get the default relative path used for sources.
+     *
+     * @return string
+     */
+    protected function sourceDefaultPath(): string
+    {
+        return 'path';
+    }
+
+    /**
+     * Get the compiled path for a given source based on the source's basePath and given path.
+     *
+     * @param  IsSourceRepository  $source
+     * @param  string|null  $path
+     * @return string
+     */
+    protected function sourcePath(IsSourceRepository $source, string $path = null): string
+    {
+        return $source->getBasePath().($path ?? $this->sourceDefaultPath());
     }
 }

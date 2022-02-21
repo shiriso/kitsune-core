@@ -5,7 +5,10 @@ namespace Kitsune\Core\Tests\Unit;
 use Illuminate\Support\Facades\Event;
 use Kitsune\Core\Contracts\IsSourceNamespace;
 use Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
+use Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
 use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
+use Kitsune\Core\Listeners\PropagateSourceUpdate;
+use Kitsune\Core\Listeners\UpdateKitsuneForNamespace;
 use Kitsune\Core\Tests\AbstractNamespaceTestCase;
 
 class NamespaceInteractionTest extends AbstractNamespaceTestCase
@@ -46,8 +49,8 @@ class NamespaceInteractionTest extends AbstractNamespaceTestCase
         Event::fake(KitsuneSourceNamespaceUpdated::class);
 
         $this->assertFalse($namespace->setLayout($namespace->getLayout()));
-        $this->assertFalse($namespace->setIncludeDefaults($namespace->shouldIncludeDefaults()));
-        $this->assertFalse($namespace->setPriority($namespace->getPriority()));
+        $this->assertFalse($namespace->disableIncludeDefaults());
+        $this->assertFalse($namespace->setPriority('namespace'));
 
         Event::assertNotDispatched(KitsuneSourceNamespaceUpdated::class);
 
@@ -234,6 +237,7 @@ class NamespaceInteractionTest extends AbstractNamespaceTestCase
     {
         $source = $namespace->getSource('vendor');
 
+        $this->assertSame('vendor', $source->getName());
         $this->assertEquals(base_path('vendor/'), $source->getBasePath());
         $this->assertEquals([], $source->getRegisteredPaths());
         $this->hasValidPriority('vendor', $source->getPriority());
@@ -251,19 +255,188 @@ class NamespaceInteractionTest extends AbstractNamespaceTestCase
     {
         $source = $namespace->getSource('published');
 
+        $this->assertSame('published', $source->getName());
         $this->assertEquals(resource_path('views/vendor/'), $source->getBasePath());
         $this->assertEquals([], $source->getRegisteredPaths());
-        $this->hasValidPriority('published', $source->getPriority());
+        $this->hasValidPriority('published', $namespace->getSourcePriority('published'));
 
         return $namespace;
     }
 
     /**
-     *
-     * @return void
+     * @test
+     * @depends publishedSourceHasDefaultConfiguration
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
      */
-    public function canPrependPathToSource()
+    public function cantUpdateWithSameSourcePriority(IsSourceNamespace $namespace): IsSourceNamespace
     {
+        Event::fake(KitsuneSourceRepositoryUpdated::class);
 
+        $namespace->setSourcePriority('published', 'published');
+
+        Event::assertNotDispatched(KitsuneSourceRepositoryUpdated::class);
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends hasValidDefaultConfiguration
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function canUpdateSourcePriority(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        Event::fake(KitsuneSourceRepositoryUpdated::class);
+
+        $namespace->setSourcePriority('published', 'least');
+
+        Event::assertDispatched(KitsuneSourceRepositoryUpdated::class);
+        Event::assertListening(KitsuneSourceRepositoryUpdated::class, PropagateSourceUpdate::class);
+
+        $this->hasValidPriority('least', $namespace->getSourcePriority('published'));
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends canUpdateSourcePriority
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function canAppendPathToSource(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        Event::fake(KitsuneSourceRepositoryUpdated::class);
+
+        $namespace->addPathToSource('fake', 'published');
+
+        Event::assertDispatched(KitsuneSourceRepositoryUpdated::class);
+        Event::assertListening(KitsuneSourceRepositoryUpdated::class, PropagateSourceUpdate::class);
+
+        $this->assertEquals(['fake'], $namespace->getSource('published')->getRegisteredPaths());
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends canAppendPathToSource
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function canPrependPathToSource(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        Event::fake(KitsuneSourceRepositoryUpdated::class);
+
+        $namespace->prependPathToSource('kitsune', 'published');
+
+        Event::assertDispatched(KitsuneSourceRepositoryUpdated::class);
+        Event::assertListening(KitsuneSourceRepositoryUpdated::class, PropagateSourceUpdate::class);
+
+        $this->assertEquals(['kitsune', 'fake'], $namespace->getSource('published')->getRegisteredPaths());
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends canPrependPathArray
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function sourceTransformsToAbsolutePaths(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $sourceRepository = $namespace->getSource('published');
+
+        $this->assertEquals(
+            array_map(
+                fn($path) => $this->sourcePath($sourceRepository, $path),
+                $sourceRepository->getRegisteredPaths()
+            ),
+            $sourceRepository->getPaths()
+        );
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends canPrependPathToSource
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function generatesGroupedPathsByPriority(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $published = $namespace->getSource('published');
+        $vendor = $namespace->getSource('vendor');
+
+        $this->assertEqualsCanonicalizing([
+            $published->getPriority()->getValue() => $published->getPaths(),
+            $vendor->getPriority()->getValue() => $vendor->getPaths(),
+            $namespace->getPriority()->getValue() => $namespace->getRegisteredPaths(),
+        ], $namespace->getPaths());
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends generatesGroupedPathsByPriority
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function compilesExistingOrderedPaths(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        // array_values is used as the order of entries is relevant, but the keys are not.
+        $this->assertEquals([
+            resource_path('views/namespace/existing/prepend-array'),
+            resource_path('views/namespace/prepend'),
+            resource_path('views/namespace/append'),
+            resource_path('views/namespace/existing/append-array'),
+            resource_path('views/vendor/kitsune'),
+        ], array_values($namespace->getPathsWithDerivatives()));
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends compilesExistingOrderedPaths
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function canEnableToIncludeDefaults(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        Event::fake(KitsuneSourceNamespaceUpdated::class);
+
+        $namespace->enableIncludeDefaults();
+
+        Event::assertDispatched(KitsuneSourceNamespaceUpdated::class);
+        Event::assertListening(KitsuneSourceNamespaceUpdated::class, UpdateKitsuneForNamespace::class);
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends canEnableToIncludeDefaults
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function compilesExistingOrderedPathsWithDefaults(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        // array_values is used as the order of entries is relevant, but the keys are not.
+        $this->assertEquals([
+            resource_path('views'),
+            resource_path('views/namespace/existing/prepend-array'),
+            resource_path('views/namespace/prepend'),
+            resource_path('views/namespace/append'),
+            resource_path('views/namespace/existing/append-array'),
+            resource_path('views/vendor/kitsune'),
+        ], array_values($namespace->getPathsWithDerivatives()));
+
+        return $namespace;
     }
 }

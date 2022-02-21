@@ -2,12 +2,14 @@
 
 namespace Kitsune\Core\Tests\Unit;
 
+use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\IsSourceNamespace;
-use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Tests\AbstractNamespaceTestCase;
 
 class PackageNamespaceTest extends AbstractNamespaceTestCase
 {
+    use UtilisesKitsune;
+
     protected int $expectedSourceCreatedEvents = 3;
     protected ?string $expectedLayout = 'testing';
     protected bool $expectedIncludeDefaults = true;
@@ -19,7 +21,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
      */
     public function isAutomaticallyCreatedByManager(): IsSourceNamespace
     {
-        return $this->validatesNamespaceConfiguration(app('kitsune.manager')->getNamespace('package'));
+        return $this->validatesNamespaceConfiguration($this->getKitsuneManager()->getNamespace('package'));
     }
 
     /**
@@ -40,14 +42,14 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
      * @param  IsSourceNamespace  $namespace
      * @return IsSourceNamespace
      */
-    public function hasValidConfigurationFromPackage(IsSourceNamespace $namespace): IsSourceNamespace
+    public function namespaceHasValidConfiguration(IsSourceNamespace $namespace): IsSourceNamespace
     {
         return $this->validatesNamespaceConfiguration($namespace);
     }
 
     /**
      * @test
-     * @depends hasValidConfigurationFromPackage
+     * @depends namespaceHasValidConfiguration
      * @param  IsSourceNamespace  $namespace
      * @return IsSourceNamespace
      */
@@ -71,7 +73,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
 
     /**
      * @test
-     * @depends hasValidConfigurationFromPackage
+     * @depends namespaceHasValidConfiguration
      * @param  IsSourceNamespace  $namespace
      * @return IsSourceNamespace
      */
@@ -79,6 +81,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
     {
         $source = $namespace->getSource('published');
 
+        $this->assertSame('published', $source->getName());
         $this->assertEquals(resource_path('views/package/source/published/'), $source->getBasePath());
         $this->assertEquals([$this->sourceDefaultPath()], $source->getRegisteredPaths());
         $this->hasValidPriority('high', $source->getPriority());
@@ -88,7 +91,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
 
     /**
      * @test
-     * @depends hasValidConfigurationFromPackage
+     * @depends namespaceHasValidConfiguration
      * @param  IsSourceNamespace  $namespace
      * @return IsSourceNamespace
      */
@@ -96,6 +99,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
     {
         $source = $namespace->getSource('vendor');
 
+        $this->assertSame('vendor', $source->getName());
         $this->assertEquals(base_path('vendor/'), $source->getBasePath());
         $this->assertEquals([], $source->getRegisteredPaths());
         $this->hasValidPriority('vendor', $source->getPriority());
@@ -105,7 +109,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
 
     /**
      * @test
-     * @depends hasValidConfigurationFromPackage
+     * @depends namespaceHasValidConfiguration
      * @param  IsSourceNamespace  $namespace
      * @return IsSourceNamespace
      */
@@ -113,6 +117,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
     {
         $source = $namespace->getSource('testing');
 
+        $this->assertSame('testing', $source->getName());
         $this->assertEquals(resource_path('views/package/source/testing/'), $source->getBasePath());
         $this->assertEquals([$this->sourceDefaultPath()], $source->getRegisteredPaths());
         $this->hasValidPriority('high', $source->getPriority());
@@ -122,7 +127,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
 
     /**
      * @test
-     * @depends hasValidConfigurationFromPackage
+     * @depends namespaceHasValidConfiguration
      * @param  IsSourceNamespace  $namespace
      * @return IsSourceNamespace
      */
@@ -159,27 +164,5 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
     protected function namespacePath(): string
     {
         return resource_path('views/package/namespace');
-    }
-
-    /**
-     * Get the default relative path used for sources.
-     *
-     * @return string
-     */
-    protected function sourceDefaultPath(): string
-    {
-        return 'path';
-    }
-
-    /**
-     * Get the compiled path for a given source based on the source's basePath and given path.
-     *
-     * @param  IsSourceRepository  $source
-     * @param  string|null  $path
-     * @return string
-     */
-    protected function sourcePath(IsSourceRepository $source, string $path = null): string
-    {
-        return $source->getBasePath().($path ?? $this->sourceDefaultPath());
     }
 }
