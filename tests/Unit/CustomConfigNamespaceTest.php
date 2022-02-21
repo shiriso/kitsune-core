@@ -79,6 +79,42 @@ class CustomConfigNamespaceTest extends AbstractNamespaceTestCase
     }
 
     /**
+     * @test
+     * @depends isAutomaticallyCreatedByManager
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function vendorSourceHasDefaultConfiguration(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $source = $namespace->getSource('vendor');
+
+        $this->assertSame('vendor', $source->getName());
+        $this->assertEquals(base_path('vendor/'), $source->getBasePath());
+        $this->assertEquals([], $source->getRegisteredPaths());
+        $this->hasValidPriority('vendor', $source->getPriority());
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends isAutomaticallyCreatedByManager
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function publishedSourceHasDefaultConfiguration(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $source = $namespace->getSource('published');
+
+        $this->assertSame('published', $source->getName());
+        $this->assertEquals(resource_path('views/vendor/'), $source->getBasePath());
+        $this->assertEquals([], $source->getRegisteredPaths());
+        $this->hasValidPriority('published', $namespace->getSourcePriority('published'));
+
+        return $namespace;
+    }
+
+    /**
      * Override the getter for the property, as calls like resource_path are not allowed in declarations.
      *
      * @return array|null
