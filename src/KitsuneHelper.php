@@ -29,8 +29,6 @@ class KitsuneHelper implements IsKitsuneHelper
 {
     use UtilisesKitsune;
 
-    protected ?array $defaultSources = null;
-
     /**
      * Filter given paths based on their existing directory in the filesystem.
      *
@@ -288,7 +286,7 @@ class KitsuneHelper implements IsKitsuneHelper
      */
     public function getDefaultSourceConfigurations(): array
     {
-        return $this->defaultSources ??= array_replace_recursive(
+        return array_replace_recursive(
             $this->getDefaultSources(),
             array_map([$this, 'toCamelKeys'], config('kitsune.view.sources', []))
         );
@@ -308,7 +306,7 @@ class KitsuneHelper implements IsKitsuneHelper
      */
     public function getPackageSourceConfigurations(string $package): array
     {
-        return $this->packageSources[$package] ??= array_replace_recursive(
+        return array_replace_recursive(
             $this->getDefaultSourceConfigurations(),
             array_map([$this, 'toCamelKeys'], config(sprintf('kitsune.packages.%s.sources', $package), []))
         );
