@@ -29,7 +29,7 @@ class CustomConfigNamespaceTest extends AbstractNamespaceTestCase
             ],
         ]);
 
-        app('kitsune.manager')->initializeNamespaces();
+        $this->getKitsuneManager()->initializeNamespaces();
     }
 
     /**

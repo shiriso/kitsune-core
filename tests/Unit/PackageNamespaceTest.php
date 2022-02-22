@@ -32,7 +32,7 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
     {
         return $this->createNamespace(
             'package',
-            app('kitsune.helper')->toCamelKeys(config('kitsune.packages.package.namespace'))
+            $this->getKitsuneHelper()->toCamelKeys(config('kitsune.packages.package.namespace'))
         );
     }
 
@@ -134,10 +134,10 @@ class PackageNamespaceTest extends AbstractNamespaceTestCase
     public function generatesGroupedPathsByPriority(IsSourceNamespace $namespace): IsSourceNamespace
     {
         $this->assertEqualsCanonicalizing([
-            app('kitsune.helper')->getPriorityDefault('low')->getValue() => [
+            $this->getKitsuneHelper()->getPriorityDefault('low')->getValue() => [
                 $this->namespacePath(),
             ],
-            app('kitsune.helper')->getPriorityDefault('high')->getValue() => [
+            $this->getKitsuneHelper()->getPriorityDefault('high')->getValue() => [
                 $this->sourcePath($namespace->getSource('published')),
                 $this->sourcePath($namespace->getSource('testing')),
             ],
