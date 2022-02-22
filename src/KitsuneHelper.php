@@ -87,14 +87,14 @@ class KitsuneHelper implements IsKitsuneHelper
     public function getSourceNamespaceClass(): string
     {
         if (is_a(
-            $managerClass = config('kitsune.core.service.namespace', SourceNamespace::class),
+            $namespaceClass = config('kitsune.core.service.namespace', SourceNamespace::class),
             IsSourceNamespace::class,
             true
         )) {
-            return $managerClass;
+            return $namespaceClass;
         }
 
-        throw new InvalidSourceNamespaceException($managerClass);
+        throw new InvalidSourceNamespaceException($namespaceClass);
     }
 
     /**
