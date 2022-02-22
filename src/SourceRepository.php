@@ -33,7 +33,7 @@ class SourceRepository implements IsSourceRepository
         $this->basePath ??= $this->getBasePath();
         $this->paths ??= $this->getDefaultPaths();
 
-        $this->setPriority($this->priority);
+        $this->setPriority($this->priority ?? $this->getDefaultValue('priority'));
         $this->dispatchUpdatedEvent();
     }
 
