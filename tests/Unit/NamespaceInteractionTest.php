@@ -4,9 +4,11 @@ namespace Kitsune\Core\Tests\Unit;
 
 use Illuminate\Support\Facades\Event;
 use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
 use Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
 use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
+use Kitsune\Core\Exceptions\MissingBasePathException;
 use Kitsune\Core\Listeners\PropagateSourceUpdate;
 use Kitsune\Core\Listeners\UpdateKitsuneForNamespace;
 use Kitsune\Core\Tests\AbstractNamespaceTestCase;
@@ -55,21 +57,6 @@ class NamespaceInteractionTest extends AbstractNamespaceTestCase
         Event::assertNotDispatched(KitsuneSourceNamespaceUpdated::class);
 
         return $namespace;
-    }
-
-    /**
-     * @test
-     * @depends hasValidDefaultConfiguration
-     * @param  IsSourceNamespace  $namespace
-     * @return void
-     */
-    public function cantAddSourceWithoutDefaults(IsSourceNamespace $namespace): void
-    {
-        $this->expectException(InvalidDefaultSourceConfiguration::class);
-
-        $vendor = $namespace->addSource('undefined');
-
-        $this->assertIsNotObject($vendor);
     }
 
     /**

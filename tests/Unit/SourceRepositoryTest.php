@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Events\KitsuneSourceRepositoryCreated;
 use Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
+use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
 use Kitsune\Core\Exceptions\MissingBasePathException;
 use Kitsune\Core\Listeners\PropagateSourceUpdate;
 use Kitsune\Core\Tests\AbstractNamespaceTestCase;
@@ -121,6 +123,54 @@ class SourceRepositoryTest extends AbstractNamespaceTestCase
         $this->assertEquals(resource_path('customised/'), $source->getBasePath());
         $this->assertEquals(['path'], $source->getRegisteredPaths());
         $this->hasValidPriority('least', $source->getPriority());
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends hasValidDefaultConfiguration
+     * @param  IsSourceNamespace  $namespace
+     * @return void
+     */
+    public function canAddSourceWithOnlyBasePath(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $source = $namespace->addSource('base-path-only', basePath: resource_path('base-path-only'));
+
+        $this->assertInstanceOf(IsSourceRepository::class, $source);
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends canAddSourceWithOnlyBasePath
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function hasBasePathOnlySourceRepository(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $this->assertContains('base-path-only', $namespace->getRegisteredSources());
+        $this->assertTrue($namespace->hasSource('base-path-only'));
+        $this->assertInstanceOf(config('kitsune.core.service.source'), $namespace->getSource('base-path-only'));
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends hasBasePathOnlySourceRepository
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function basePathOnlySourceIsUsingDefaults(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $source = $namespace->getSource('base-path-only');
+
+        $this->assertSame('base-path-only', $source->getName());
+        $this->assertEquals(resource_path('base-path-only/'), $source->getBasePath());
+        $this->assertEquals([], $source->getRegisteredPaths());
+        $this->hasValidPriority('source', $source->getPriority());
 
         return $namespace;
     }

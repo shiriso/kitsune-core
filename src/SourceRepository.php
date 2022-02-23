@@ -8,10 +8,10 @@ use Kitsune\Core\Concerns\HasPriority;
 use Kitsune\Core\Concerns\ManagesPaths;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\DefinesPriority;
-use Kitsune\Core\Contracts\ImplementsPriority;
 use Kitsune\Core\Contracts\IsSourceNamespace;
 use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Events\KitsuneSourceRepositoryUpdated;
+use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
 use Kitsune\Core\Exceptions\MissingBasePathException;
 
 class SourceRepository implements IsSourceRepository
@@ -105,7 +105,11 @@ class SourceRepository implements IsSourceRepository
         string $key,
         string|array|DefinesPriority|null $default = null
     ): string|array|DefinesPriority|null {
-        return $this->getKitsuneHelper()->getDefaultSourceConfiguration($this->alias)[$key] ?? $default;
+        try {
+            return $this->getKitsuneHelper()->getDefaultSourceConfiguration($this->alias)[$key] ?? $default;
+        } catch (InvalidDefaultSourceConfiguration $exception) {
+            return $default;
+        }
     }
 
     /**
