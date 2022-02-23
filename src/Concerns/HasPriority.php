@@ -2,8 +2,6 @@
 
 namespace Kitsune\Core\Concerns;
 
-use Kitsune\Core\Contracts\DefinesClassPriority;
-use Kitsune\Core\Contracts\DefinesEnumPriority;
 use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Exceptions\MissingPriorityPropertyException;
 
@@ -14,10 +12,10 @@ trait HasPriority
     /**
      * Set a new priority.
      *
-     * @param  string|DefinesClassPriority|DefinesEnumPriority|null  $priority
+     * @param  string|DefinesPriority|null  $priority
      * @return bool
      */
-    public function setPriority(string|DefinesClassPriority|DefinesEnumPriority|null $priority): bool
+    public function setPriority(string|DefinesPriority|null $priority): bool
     {
         $this->validateHasPriorityIntegration();
 

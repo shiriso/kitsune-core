@@ -6,8 +6,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Kitsune\Core\Concerns\UtilisesKitsune;
-use Kitsune\Core\Contracts\DefinesClassPriority;
-use Kitsune\Core\Contracts\DefinesEnumPriority;
 use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Contracts\ImplementsPriority;
 use Kitsune\Core\Contracts\IsKitsuneCore;
@@ -16,14 +14,11 @@ use Kitsune\Core\Contracts\IsKitsuneManager;
 use Kitsune\Core\Contracts\IsSourceNamespace;
 use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Exceptions\InvalidDefaultSourceConfiguration;
-use Kitsune\Core\Exceptions\InvalidDefinesPriorityInterfaceUsage;
 use Kitsune\Core\Exceptions\InvalidKitsuneCoreException;
 use Kitsune\Core\Exceptions\InvalidKitsuneManagerException;
 use Kitsune\Core\Exceptions\InvalidPriorityDefinitionException;
-use Kitsune\Core\Exceptions\InvalidPriorityException;
 use Kitsune\Core\Exceptions\InvalidSourceNamespaceException;
 use Kitsune\Core\Exceptions\InvalidSourceRepositoryException;
-use Kitsune\Core\Exceptions\PriorityDefinitionNotEnumException;
 
 class KitsuneHelper implements IsKitsuneHelper
 {
@@ -121,7 +116,6 @@ class KitsuneHelper implements IsKitsuneHelper
      *
      * @return string
      * @throws InvalidPriorityDefinitionException
-     * @throws InvalidDefinesPriorityInterfaceUsage
      */
     public function getPriorityDefinition(): string
     {
@@ -130,11 +124,6 @@ class KitsuneHelper implements IsKitsuneHelper
             DefinesPriority::class,
             true
         )) {
-            if (!is_a($priorityDefinition, DefinesEnumPriority::class, true)
-                && !is_a($priorityDefinition, DefinesClassPriority::class, true)) {
-                throw new InvalidDefinesPriorityInterfaceUsage($priorityDefinition);
-            }
-
             return $priorityDefinition;
         }
 
@@ -177,9 +166,7 @@ class KitsuneHelper implements IsKitsuneHelper
             default => $type,
         };
 
-        return $this->priorityDefinitionIsEnum()
-            ? $this->getPriorityEnum($defaultPriority)
-            : $this->getPriorityObject($defaultPriority);
+        return $this->getPriorityDefinition()::fromName($defaultPriority);
     }
 
     /**
@@ -199,31 +186,6 @@ class KitsuneHelper implements IsKitsuneHelper
             },
             default => 'medium'
         };
-    }
-
-    /**
-     * Get an enum of the current priority for the given case.
-     *
-     * @param  string  $priority
-     * @return DefinesPriority
-     * @throws InvalidPriorityException
-     * @throws InvalidDefinesPriorityInterfaceUsage
-     */
-    protected function getPriorityEnum(string $priority): DefinesPriority
-    {
-        return $this->getPriorityDefinition()::fromName($priority);
-    }
-
-    /**
-     * Get the object reflecting a priority based on a class.
-     *
-     * @param  string  $priority
-     * @return DefinesPriority
-     * @throws InvalidDefinesPriorityInterfaceUsage
-     */
-    protected function getPriorityObject(string $priority): DefinesPriority
-    {
-        return new ($this->getPriorityDefinition())($priority);
     }
 
     /**

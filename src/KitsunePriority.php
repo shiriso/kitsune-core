@@ -2,10 +2,10 @@
 
 namespace Kitsune\Core;
 
-use Kitsune\Core\Contracts\DefinesClassPriority;
+use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Exceptions\InvalidPriorityException;
 
-class KitsunePriority implements DefinesClassPriority
+class KitsunePriority implements DefinesPriority
 {
     protected array $priorities = [
         'least' => 10,
@@ -25,6 +25,17 @@ class KitsunePriority implements DefinesClassPriority
         if (!array_key_exists($priority, $this->priorities)) {
             throw new InvalidPriorityException($priority);
         }
+    }
+
+    /**
+     * Get the priority based on the name.
+     *
+     * @param  string  $name
+     * @return DefinesPriority
+     */
+    public static function fromName(string $name = 'medium'): DefinesPriority
+    {
+        return new static($name);
     }
 
     /**

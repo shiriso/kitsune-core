@@ -2,10 +2,10 @@
 
 namespace Kitsune\Core;
 
-use Kitsune\Core\Contracts\DefinesEnumPriority;
+use Kitsune\Core\Contracts\DefinesPriority;
 use Kitsune\Core\Exceptions\InvalidPriorityException;
 
-enum KitsuneEnumPriority: int implements DefinesEnumPriority
+enum KitsuneEnumPriority: int implements DefinesPriority
 {
     case LEAST = 10;
     case LOW = 20;
@@ -27,10 +27,10 @@ enum KitsuneEnumPriority: int implements DefinesEnumPriority
      * Get the priority based on the name.
      *
      * @param  string  $name
-     * @return DefinesEnumPriority
+     * @return DefinesPriority
      * @throws InvalidPriorityException
      */
-    public static function fromName(string $name = 'medium'): DefinesEnumPriority
+    public static function fromName(string $name = 'medium'): DefinesPriority
     {
         $enumPriorityCase = strtoupper($name);
 

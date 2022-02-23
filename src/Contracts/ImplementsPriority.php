@@ -14,8 +14,8 @@ interface ImplementsPriority
     /**
      * Set a new priority.
      *
-     * @param  string|DefinesClassPriority|DefinesEnumPriority|null  $priority
+     * @param  string|DefinesPriority|null  $priority
      * @return bool
      */
-    public function setPriority(string|DefinesClassPriority|DefinesEnumPriority|null $priority): bool;
+    public function setPriority(string|DefinesPriority|null $priority): bool;
 }
