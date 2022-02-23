@@ -206,19 +206,12 @@ class KitsuneHelper implements IsKitsuneHelper
      *
      * @param  string  $priority
      * @return DefinesPriority
-     * @throws PriorityDefinitionNotEnumException
      * @throws InvalidPriorityException
      * @throws InvalidDefinesPriorityInterfaceUsage
      */
     protected function getPriorityEnum(string $priority): DefinesPriority
     {
-        $priorityDefinition = $this->getPriorityDefinition();
-
-        if (!$this->priorityDefinitionIsEnum()) {
-            throw new PriorityDefinitionNotEnumException($priorityDefinition);
-        }
-
-        return $priorityDefinition::fromName($priority);
+        return $this->getPriorityDefinition()::fromName($priority);
     }
 
     /**
@@ -230,9 +223,7 @@ class KitsuneHelper implements IsKitsuneHelper
      */
     protected function getPriorityObject(string $priority): DefinesPriority
     {
-        $priorityDefinition = $this->getPriorityDefinition();
-
-        return new ($priorityDefinition)($priority);
+        return new ($this->getPriorityDefinition())($priority);
     }
 
     /**
