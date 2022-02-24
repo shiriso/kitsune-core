@@ -169,4 +169,11 @@ interface IsKitsuneHelper
      * @return string
      */
     public function getDefaultIdentifier(ImplementsPriority $object): string;
+
+    /**
+     * Get the default sources which we expect always to exist for internal usages.
+     *
+     * @return array
+     */
+    public function getDefaultSources(): array;
 }

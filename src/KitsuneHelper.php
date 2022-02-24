@@ -328,7 +328,7 @@ class KitsuneHelper implements IsKitsuneHelper
      *
      * @return array
      */
-    protected function getDefaultSources(): array
+    public function getDefaultSources(): array
     {
         return [
             'published' => [
