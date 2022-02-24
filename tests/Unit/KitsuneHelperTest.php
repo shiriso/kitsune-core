@@ -193,6 +193,7 @@ class KitsuneHelperTest extends AbstractTestCase
 
     /**
      * @test
+     * @requires PHP >= 8.1.0
      * @return void
      */
     public function canIdentifyPriorityType(): void
