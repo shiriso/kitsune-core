@@ -37,7 +37,7 @@ class KitsuneCoreServiceProvider extends ServiceProvider
 
         $this->addEventListeners();
 
-        $this->getKitsuneCore()->initialize();
+        $this->getKitsuneCore()->shouldAutoInitialize() && $this->getKitsuneCore()->initialize();
     }
 
     /**

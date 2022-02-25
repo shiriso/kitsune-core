@@ -15,10 +15,6 @@ class KitsuneManager implements IsKitsuneManager
     protected bool $initialized = false;
     protected array $namespaces = [];
 
-    public function __construct()
-    {
-    }
-
     /**
      * Retrieve a list of all registered namespaces.
      *
@@ -108,14 +104,12 @@ class KitsuneManager implements IsKitsuneManager
             $kitsune = $this->getKitsuneCore();
             $initialRefreshState = $kitsune->shouldAutoRefresh();
 
-            $kitsune->disableAutoRefresh();
+            $initialRefreshState && $kitsune->disableAutoRefresh();
 
             $this->initializePackages();
             $this->initializeNamespaces();
 
-            if ($initialRefreshState) {
-                $kitsune->enableAutoRefresh();
-            }
+            $initialRefreshState && $kitsune->enableAutoRefresh();
 
             $this->initialized = true;
 

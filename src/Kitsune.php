@@ -16,6 +16,7 @@ class Kitsune implements IsKitsuneCore
     use UtilisesKitsune;
 
     protected bool $autoRefresh = false;
+    protected bool $autoInitialize = false;
     protected bool $globalModeEnabled = false;
     protected bool $initialized = false;
     protected ?string $applicationLayout = null;
@@ -28,6 +29,7 @@ class Kitsune implements IsKitsuneCore
         $this->setGlobalModeEnabled(config('kitsune.core.global_mode.enabled', false));
         $this->setGlobalNamespace(config('kitsune.core.global_mode.namespace'));
         $this->setAutoRefresh(config('kitsune.core.auto_refresh', true));
+        $this->setAutoInitialize(config('kitsune.core.auto_initialize', true));
         $this->setApplicationLayout(config('kitsune.view.layout'));
     }
 
@@ -45,6 +47,16 @@ class Kitsune implements IsKitsuneCore
 
             KitsuneCoreInitialized::dispatch($this);
         }
+    }
+
+    /**
+     * Checks if the Core has already been initialized.
+     *
+     * @return bool
+     */
+    public function isInitialized(): bool
+    {
+        return $this->initialized;
     }
 
     /**
@@ -209,6 +221,30 @@ class Kitsune implements IsKitsuneCore
     public function shouldAutoRefresh(): bool
     {
         return $this->autoRefresh;
+    }
+
+    /**
+     * Define if Kitsune is supposed to automatically be initialized during the apps boot process,
+     * or if it will only be programmatically be activated during runtime
+     *
+     * @param  bool  $autoInitialize
+     * @return $this
+     */
+    protected function setAutoInitialize(bool $autoInitialize): static
+    {
+        $this->autoInitialize = $autoInitialize;
+
+        return $this;
+    }
+
+    /**
+     * Determines if Kitsune should automatically propagate changes to the namespace.
+     *
+     * @return bool
+     */
+    public function shouldAutoInitialize(): bool
+    {
+        return $this->autoInitialize;
     }
 
     /**

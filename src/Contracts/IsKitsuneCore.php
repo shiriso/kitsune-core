@@ -2,6 +2,8 @@
 
 namespace Kitsune\Core\Contracts;
 
+use Kitsune\Core\Kitsune;
+
 interface IsKitsuneCore
 {
     /**
@@ -132,4 +134,18 @@ interface IsKitsuneCore
      * @return bool
      */
     public function enableGlobalMode(): bool;
+
+    /**
+     * Determine if Kitsune is supposed to be automatically initialized during the boot process.
+     *
+     * @return bool
+     */
+    public function isInitialized(): bool;
+
+    /**
+     * Determines if Kitsune should automatically propagate changes to the namespace.
+     *
+     * @return bool
+     */
+    public function shouldAutoInitialize(): bool;
 }

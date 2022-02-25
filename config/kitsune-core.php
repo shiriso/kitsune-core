@@ -239,4 +239,14 @@ return [
      |
      */
     'auto_refresh' => env('KITSUNE_CORE_AUTO_REFRESH', true),
+
+    /*
+     |--------------------------------------------------------------------------
+     | Auto Initialize
+     |--------------------------------------------------------------------------
+     | If auto initialize is activated, Kitsune will be activated by default
+     | without
+     |
+     */
+    'auto_initialize' => env('KITSUNE_CORE_AUTO_INITIALIZE', true),
 ];
