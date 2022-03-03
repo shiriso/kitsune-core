@@ -3,6 +3,7 @@
 namespace Kitsune\Core\Tests\Unit;
 
 use Illuminate\Support\Facades\Event;
+use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\IsSourceNamespace;
 use Kitsune\Core\Contracts\IsSourceRepository;
 use Kitsune\Core\Events\KitsuneSourceNamespaceUpdated;
@@ -15,6 +16,8 @@ use Kitsune\Core\Tests\AbstractNamespaceTestCase;
 
 class NamespaceInteractionTest extends AbstractNamespaceTestCase
 {
+    use UtilisesKitsune;
+
     /**
      * @test
      * @return IsSourceNamespace
@@ -421,6 +424,49 @@ class NamespaceInteractionTest extends AbstractNamespaceTestCase
             resource_path('views/namespace/prepend'),
             resource_path('views/namespace/append'),
             resource_path('views/namespace/existing/append-array'),
+            resource_path('views/vendor/kitsune'),
+        ], array_values($namespace->getPathsWithDerivatives()));
+
+        return $namespace;
+    }
+
+    /**
+     * @test
+     * @depends compilesExistingOrderedPathsWithDefaults
+     * @param  IsSourceNamespace  $namespace
+     * @return IsSourceNamespace
+     */
+    public function compilesExistingOrderedPathsWithLayouts(IsSourceNamespace $namespace): IsSourceNamespace
+    {
+        $appLayout = 'app-layout';
+        $namespaceLayout = 'namespace-layout';
+
+        $namespace->setLayout($namespaceLayout);
+        $namespace->enableIncludeDefaults();
+        $this->getKitsuneCore()->setApplicationLayout($appLayout);
+
+        $this->assertEquals($namespaceLayout, $namespace->getLayout());
+        $this->assertEquals($appLayout, $this->getKitsuneCore()->getApplicationLayout());
+
+        // array_values is used as the order of entries is relevant, but the keys are not.
+        $this->assertEquals([
+            resource_path('views/'.$appLayout),
+            resource_path('views/'.$namespaceLayout),
+            resource_path('views'),
+            resource_path('views/namespace/existing/prepend-array/'.$appLayout),
+            resource_path('views/namespace/existing/prepend-array/'.$namespaceLayout),
+            resource_path('views/namespace/existing/prepend-array'),
+            resource_path('views/namespace/prepend/'.$appLayout),
+            resource_path('views/namespace/prepend/'.$namespaceLayout),
+            resource_path('views/namespace/prepend'),
+            resource_path('views/namespace/append/'.$appLayout),
+            resource_path('views/namespace/append/'.$namespaceLayout),
+            resource_path('views/namespace/append'),
+            resource_path('views/namespace/existing/append-array/'.$appLayout),
+            resource_path('views/namespace/existing/append-array/'.$namespaceLayout),
+            resource_path('views/namespace/existing/append-array'),
+            resource_path('views/vendor/kitsune/'.$appLayout),
+            resource_path('views/vendor/kitsune/'.$namespaceLayout),
             resource_path('views/vendor/kitsune'),
         ], array_values($namespace->getPathsWithDerivatives()));
 
