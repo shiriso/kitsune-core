@@ -148,4 +148,19 @@ interface IsKitsuneCore
      * @return bool
      */
     public function shouldAutoInitialize(): bool;
+
+    /**
+     * Retrieve the registered global view paths.
+     *
+     * @return array
+     */
+    public function getViewPaths(): array;
+
+    /**
+     * Retrieve the view paths registered for a namespace.
+     *
+     * @param  IsSourceNamespace  $namespace
+     * @return array|null
+     */
+    public function getViewNamespacePaths(IsSourceNamespace $namespace): ?array;
 }

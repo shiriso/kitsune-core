@@ -132,7 +132,7 @@ class Kitsune implements IsKitsuneCore
         }
 
         if ($registeredNamespace = $this->getGlobalNamespace()) {
-            return $registeredNamespace->dispatchUpdatedEvent();
+            return $registeredNamespace->dispatchUpdatedEvent(true);
         }
 
         return null;
@@ -344,6 +344,27 @@ class Kitsune implements IsKitsuneCore
     }
 
     /**
+     * Retrieve the registered global view paths.
+     *
+     * @return array
+     */
+    public function getViewPaths(): array
+    {
+        return $this->viewFinder->getPaths();
+    }
+
+    /**
+     * Retrieve the view paths registered for a namespace.
+     *
+     * @param  IsSourceNamespace  $namespace
+     * @return array|null
+     */
+    public function getViewNamespacePaths(IsSourceNamespace $namespace): ?array
+    {
+        return $this->viewFinder->getHints()[$namespace->getName()] ?? null;
+    }
+
+    /**
      * Determines if the global paths have been updated compared to the new paths.
      *
      * @param  IsSourceNamespace  $namespace
@@ -353,7 +374,7 @@ class Kitsune implements IsKitsuneCore
     {
         return $this->getKitsuneHelper()->pathsHaveUpdates(
             $namespace->getPathsWithDerivatives(true),
-            $this->viewFinder->getPaths()
+            $this->getViewPaths()
         );
     }
 
@@ -367,7 +388,7 @@ class Kitsune implements IsKitsuneCore
     {
         return $this->getKitsuneHelper()->pathsHaveUpdates(
             $namespace->getPathsWithDerivatives(),
-            $this->viewFinder->getHints()[$namespace->getName()] ?? null
+            $this->getViewNamespacePaths($namespace)
         );
     }
 
