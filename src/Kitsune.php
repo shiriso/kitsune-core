@@ -128,7 +128,7 @@ class Kitsune implements IsKitsuneCore
         $this->globalNamespace = $namespaceAlias;
 
         if (!$namespaceAlias) {
-            return config('kitsune.core.global_mode.reset_on_disable') && $this->resetGlobalViewFinder();
+            return $this->shouldResetOnDisableGlobalMode() && $this->resetGlobalViewFinder();
         }
 
         if ($registeredNamespace = $this->getGlobalNamespace()) {
@@ -145,7 +145,7 @@ class Kitsune implements IsKitsuneCore
      */
     public function getGlobalNamespace(): ?IsSourceNamespace
     {
-        return $this->getKitsuneManager()->hasNamespace($this->globalNamespace)
+        return $this->globalModeEnabled() && $this->globalNamespace && $this->getKitsuneManager()->hasNamespace($this->globalNamespace)
             ? $this->getKitsuneManager()->getNamespace($this->globalNamespace)
             : null;
     }
@@ -256,6 +256,8 @@ class Kitsune implements IsKitsuneCore
     {
         $manager = $this->getKitsuneManager();
         $updatedSources = false;
+
+        !$this->getGlobalNamespace() && $this->shouldResetOnDisableGlobalMode() && $this->resetGlobalViewFinder();
 
         foreach ($manager->getRegisteredNamespaces() as $namespaceAlias) {
             $updatedSources = $this->refreshNamespacePaths($manager->getNamespace($namespaceAlias)) || $updatedSources;
@@ -400,5 +402,15 @@ class Kitsune implements IsKitsuneCore
     protected function dispatchCoreUpdatedEvent(): void
     {
         KitsuneCoreUpdated::dispatchIf($this->initialized, $this);
+    }
+
+    /**
+     * Checks if the global view finder paths are supposed to be reset when disabling the global mode.
+     *
+     * @return bool
+     */
+    protected function shouldResetOnDisableGlobalMode(): bool
+    {
+        return config('kitsune.core.global_mode.reset_on_disable', true);
     }
 }
