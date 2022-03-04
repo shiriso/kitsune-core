@@ -165,7 +165,7 @@ return [
              |--------------------------------------------------------------------------
              | Extra Sources
              |--------------------------------------------------------------------------
-             | Sources references all additional sources which have been added
+             | Source references all additional sources which have been added
              | to a namespace without defining their own priority.
              |
              */
@@ -175,9 +175,8 @@ return [
              |--------------------------------------------------------------------------
              | Vendor
              |--------------------------------------------------------------------------
-             | Namespace references all additional namespaces which will be distributed
-             | by kitsune, independent if they are added to the view configuration
-             | or if they are added by another packages service provider.
+             | Vendor references the vendor source which gets added to each namespace
+             | by default and did not modify their priority in the configuration.
              |
              */
             'vendor' => 'low',
