@@ -67,9 +67,8 @@ return [
          |--------------------------------------------------------------------------
          | Source
          |--------------------------------------------------------------------------
-         | Defines the class reflecting a single namespace registered
-         | to Kitsune and offers the functionality to manage
-         | various sources inside the namespace.
+         | Defines the class reflecting a single repository for a registered
+         | namespace and manages paths inside a specific base directory.
          |
          */
         'source' => SourceRepository::class,
