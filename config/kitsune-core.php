@@ -96,6 +96,9 @@ return [
          | application is running on PHP 8.1 or later, you can also use
          | the new Enum feature and implement DefinesPriority there.
          |
+         | There is already a default implementation for Enum which can
+         | be used by defining KitsuneEnumPriority as definition.
+         |
          */
         'definition' => KitsunePriority::class,
 
@@ -162,18 +165,22 @@ return [
              |--------------------------------------------------------------------------
              | Extra Sources
              |--------------------------------------------------------------------------
+             | Sources references all additional sources which have been added
+             | to a namespace without defining their own priority.
+             |
+             */
+            'source' => 'low',
+
+            /*
+             |--------------------------------------------------------------------------
+             | Vendor
+             |--------------------------------------------------------------------------
              | Namespace references all additional namespaces which will be distributed
              | by kitsune, independent if they are added to the view configuration
              | or if they are added by another packages service provider.
              |
-             | This is only the default, as the priority can be adjusted
-             | to your needs from either of these sources.
-             |
-             | Note that different namespaces are never mixed and that the priority
-             | will only affect the order of various sources in the namespace.
-             |
              */
-            'source' => 'low',
+            'vendor' => 'low',
         ],
     ],
 
@@ -244,7 +251,8 @@ return [
      | Auto Initialize
      |--------------------------------------------------------------------------
      | If auto initialize is activated, Kitsune will be activated by default
-     | without
+     | without having to use a middleware or a programmatically
+     | implemented initialization within your application.
      |
      */
     'auto_initialize' => env('KITSUNE_CORE_AUTO_INITIALIZE', true),
