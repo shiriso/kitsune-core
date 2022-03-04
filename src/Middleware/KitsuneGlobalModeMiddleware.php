@@ -15,6 +15,7 @@ class KitsuneGlobalModeMiddleware
             $this->getKitsuneCore()->disableGlobalMode();
         } else {
             $this->getKitsuneCore()->enableGlobalMode();
+            $this->getKitsuneCore()->initialize();
 
             if (is_string($state) && $this->getKitsuneManager()->hasNamespace($state)) {
                 $this->getKitsuneCore()->setGlobalNamespace($state);
