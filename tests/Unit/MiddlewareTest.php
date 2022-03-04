@@ -30,7 +30,7 @@ class MiddlewareTest extends AbstractTestCase
         $response->assertHeader('kitsune-global-enabled', false);
         $response->assertHeader('kitsune-global-namespace');
         $response->assertHeader('kitsune-app-layout');
-        $response->assertSee('Laravel 5', true);
+        $response->assertSee('Laravel 5');
     }
 
     /**
@@ -46,7 +46,7 @@ class MiddlewareTest extends AbstractTestCase
         $response->assertHeader('kitsune-global-enabled', false);
         $response->assertHeader('kitsune-global-namespace');
         $response->assertHeader('kitsune-app-layout');
-        $response->assertSee('Laravel 5', true);
+        $response->assertSee('Laravel 5');
     }
 
     /**
@@ -62,7 +62,7 @@ class MiddlewareTest extends AbstractTestCase
         $response->assertHeader('kitsune-global-enabled', true);
         $response->assertHeader('kitsune-global-namespace', 'kitsune');
         $response->assertHeader('kitsune-app-layout');
-        $response->assertSee('Kitsune Default Path', true);
+        $response->assertSee('Kitsune Default Path');
     }
 
     /**
@@ -78,7 +78,7 @@ class MiddlewareTest extends AbstractTestCase
         $response->assertHeader('kitsune-global-enabled', true);
         $response->assertHeader('kitsune-global-namespace', 'package');
         $response->assertHeader('kitsune-app-layout');
-        $response->assertSee('Package Testing Layout', true);
+        $response->assertSee('Package Testing Layout');
     }
 
     /**
