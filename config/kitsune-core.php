@@ -104,13 +104,11 @@ return [
 
         /*
          |--------------------------------------------------------------------------
-         | Laravel
+         | Defaults
          |--------------------------------------------------------------------------
-         | Laravel references the default paths which the ViewFinder is using
-         | and will be used as reference for regular paths, if you want
-         | to use the layout feature without loading extra sources.
-         |
-         | The affected paths are usually configured at "view.paths".
+         | Defines the default values which may be used as an abstraction for the
+         | specific values enabling is to change the value of a type without
+         | the necessity to change it at every single priority usage.
          |
          */
         'defaults' => [
