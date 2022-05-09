@@ -194,7 +194,7 @@ class SourceNamespace implements IsSourceNamespace
     }
 
     /**
-     * Determine if the namespace has the specific source.
+     * Determine if the namespace has the given source.
      *
      * @param  string  $sourceRepository
      * @return bool

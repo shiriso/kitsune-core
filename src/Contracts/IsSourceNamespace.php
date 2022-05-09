@@ -24,7 +24,7 @@ interface IsSourceNamespace extends CanManagePaths, ImplementsPriority
     public function prependPathToSource(string|array $path, string $sourceRepository): bool;
 
     /**
-     * Determine if the namespace has the specific source.
+     * Determine if the namespace has the given source.
      *
      * @param  string  $sourceRepository
      * @return bool
