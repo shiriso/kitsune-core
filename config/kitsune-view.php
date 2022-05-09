@@ -11,30 +11,47 @@ return [
      |
      | For available layouts check the resources' directory
      | of the included package or your own derivatives.
+     |
      */
     'layout' => env('KITSUNE_VIEW_LAYOUT'),
 
     /*
      |--------------------------------------------------------------------------
-     | Extra Paths
+     | Namespaces
      |--------------------------------------------------------------------------
-     | If you want Kitsune to include additional source directories which
-     | are not already part of your paths configured at "view.paths"
-     | you can define additional sources in here.
+     | Defines the namespaces which will be available by default.
      |
-     | Key: Used alias for your source
-     | Source: Base-Path for your source
-     | Paths: Default paths which will always be used
+     | Structure is either the name of the namespace as value or as key
+     | with an associative array of values to configure the namespace
+     | accordingly to your desires.
+     |
+     | Available Settings:
+     | "layout": Define a layout to be used only within the namespace.
+     | "paths": Defines additional paths which will be
+     |                 added to the namespace.
+     | "include_defaults": Usually Laravel's source will not be included,
+     |                 but if you desire to do so, you can
+     |                 achieve this using this flag.
+     | "priority": A higher priority will result in views taking
+     |             precedence over those in a lower priority.
      |
      */
-    'extra_sources' => [
-        'published' => [
-            'source' => resource_path('views/vendor'),
-            'paths' => [],
-        ],
-        'vendor' => [
-            'source' => base_path('vendor'),
-            'paths' => [],
-        ],
-    ],
+    'namespaces' => [],
+
+    /*
+     |--------------------------------------------------------------------------
+     | Sources
+     |--------------------------------------------------------------------------
+     | If you want Kitsune to automatically add sources to your namespace,
+     | which are not part of the applications defaults view source paths
+     | configured at the 'paths' key inside your config/view.php.
+     |
+     | Key: Used alias for your source.
+     | "base_path": Base-Path for your source.
+     | "paths": Default paths which will always be used.
+     | "priority": A higher priority will result in views taking
+     |             precedence over those in a lower priority.
+     |
+     */
+    'sources' => [],
 ];

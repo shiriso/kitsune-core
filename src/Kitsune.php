@@ -1,29 +1,250 @@
 <?php
 
-namespace Shiriso\Kitsune\Core;
+namespace Kitsune\Core;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Traits\Tappable;
 use Illuminate\View\FileViewFinder;
+use Kitsune\Core\Concerns\UtilisesKitsune;
+use Kitsune\Core\Contracts\IsKitsuneCore;
+use Kitsune\Core\Contracts\IsSourceNamespace;
+use Kitsune\Core\Events\KitsuneCoreInitialized;
+use Kitsune\Core\Events\KitsuneCoreUpdated;
 
-class Kitsune
+class Kitsune implements IsKitsuneCore
 {
-    use Tappable;
+    use UtilisesKitsune;
 
-    public const VIEW_NAMESPACE = 'kitsune';
-
-    protected ?bool $useGlobalMode;
-    protected ?string $activeLayout;
-    protected array $extraSourceRepositories = [];
-    protected array $namespacePaths = [];
+    protected bool $autoRefresh = false;
+    protected bool $autoInitialize = false;
+    protected bool $globalModeEnabled = false;
+    protected bool $initialized = false;
+    protected ?string $applicationLayout = null;
+    protected ?string $globalNamespace = null;
     protected FileViewFinder $viewFinder;
 
     public function __construct()
     {
         $this->viewFinder = View::getFinder();
+        $this->setGlobalModeEnabled(config('kitsune.core.global_mode.enabled', false));
+        $this->setGlobalNamespace(config('kitsune.core.global_mode.namespace'));
+        $this->setAutoRefresh(config('kitsune.core.auto_refresh', true));
+        $this->setAutoInitialize(config('kitsune.core.auto_initialize', true));
+        $this->setApplicationLayout(config('kitsune.view.layout'));
+    }
 
-        $this->initializeConfiguredExtraSources();
+    /**
+     * Activates Kitsune for the application and configures the necessary services.
+     *
+     * @return void
+     */
+    public function initialize(): void
+    {
+        if (!$this->initialized) {
+            $this->getKitsuneManager()->initialize();
+
+            $this->initialized = true;
+
+            KitsuneCoreInitialized::dispatch($this);
+        }
+    }
+
+    /**
+     * Checks if the Core has already been initialized.
+     *
+     * @return bool
+     */
+    public function isInitialized(): bool
+    {
+        return $this->initialized;
+    }
+
+    /**
+     * Enable global mode for Kitsune.
+     *
+     * @return bool
+     */
+    public function enableGlobalMode(): bool
+    {
+        return $this->setGlobalModeEnabled(true);
+    }
+
+    /**
+     * Disable global mode for Kitsune.
+     *
+     * @return bool
+     */
+    public function disableGlobalMode(): bool
+    {
+        return $this->setGlobalModeEnabled(false);
+    }
+
+    /**
+     * Determine if global mode is activated.
+     *
+     * @return bool
+     */
+    public function globalModeEnabled(): bool
+    {
+        return $this->globalModeEnabled;
+    }
+
+    /**
+     * Set if the global mode is enabled or not.
+     *
+     * @param  bool  $enabled
+     * @return bool
+     */
+    protected function setGlobalModeEnabled(bool $enabled): bool
+    {
+        if ($this->globalModeEnabled() !== $enabled) {
+            $this->globalModeEnabled = $enabled;
+
+            $this->dispatchCoreUpdatedEvent();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Activate the global mode for the given namespace, and make sure it is disabled for every other namespace.
+     *
+     * If a namespace gets defined as global before existence, Kitsune will skip setting the global paths.
+     * When autoRefresh is activated, it will automatically be published once the namespace is set up.
+     *
+     * @param  IsSourceNamespace|string|null  $namespace
+     * @return bool|null Returns null if nothing changed, false if no paths have been updated or true if it did.
+     */
+    public function setGlobalNamespace(IsSourceNamespace|string|null $namespace): ?bool
+    {
+        $namespaceAlias = $namespace ? $this->getKitsuneHelper()->getNamespaceAlias($namespace) : null;
+
+        if ($this->globalNamespace === $namespaceAlias) {
+            return null;
+        }
+
+        $this->globalNamespace = $namespaceAlias;
+
+        if (!$namespaceAlias) {
+            return $this->shouldResetOnDisableGlobalMode() && $this->resetGlobalViewFinder();
+        }
+
+        if ($registeredNamespace = $this->getGlobalNamespace()) {
+            return $registeredNamespace->dispatchUpdatedEvent(true);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the namespace which is currently configured for global mode.
+     *
+     * @return IsSourceNamespace|null
+     */
+    public function getGlobalNamespace(): ?IsSourceNamespace
+    {
+        return $this->globalModeEnabled() && $this->globalNamespace && $this->getKitsuneManager()->hasNamespace($this->globalNamespace)
+            ? $this->getKitsuneManager()->getNamespace($this->globalNamespace)
+            : null;
+    }
+
+    /**
+     * Get the layout which is currently configured for the application.
+     *
+     * @return string|null
+     */
+    public function getApplicationLayout(): ?string
+    {
+        return $this->applicationLayout;
+    }
+
+    /**
+     * Set the layout for the application.
+     *
+     * @param  string|null  $layout
+     * @return bool
+     */
+    public function setApplicationLayout(?string $layout): bool
+    {
+        if ($this->applicationLayout !== $layout) {
+            $this->applicationLayout = $layout;
+
+            $this->dispatchCoreUpdatedEvent();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Set if the manager is supposed to automatically trigger updates to the ViewFinder
+     * once a namespace has received updates in its configuration or registered paths.
+     *
+     * @param  bool  $autoRefresh
+     * @return $this
+     */
+    public function setAutoRefresh(bool $autoRefresh): static
+    {
+        $this->autoRefresh = $autoRefresh;
+
+        return $this;
+    }
+
+    /**
+     * Enable the automatic updates of view sources when a namespace has been updated.
+     *
+     * @return $this
+     */
+    public function enableAutoRefresh(): static
+    {
+        return $this->setAutoRefresh(true);
+    }
+
+    /**
+     * Disable the automatic updates of view sources when a namespace has been updated.
+     *
+     * @return $this
+     */
+    public function disableAutoRefresh(): static
+    {
+        return $this->setAutoRefresh(false);
+    }
+
+    /**
+     * Determines if Kitsune should automatically propagate changes to the namespace.
+     *
+     * @return bool
+     */
+    public function shouldAutoRefresh(): bool
+    {
+        return $this->autoRefresh;
+    }
+
+    /**
+     * Define if Kitsune is supposed to automatically be initialized during the apps boot process,
+     * or if it will only be programmatically be activated during runtime
+     *
+     * @param  bool  $autoInitialize
+     * @return $this
+     */
+    protected function setAutoInitialize(bool $autoInitialize): static
+    {
+        $this->autoInitialize = $autoInitialize;
+
+        return $this;
+    }
+
+    /**
+     * Determines if Kitsune should automatically propagate changes to the namespace.
+     *
+     * @return bool
+     */
+    public function shouldAutoInitialize(): bool
+    {
+        return $this->autoInitialize;
     }
 
     /**
@@ -33,152 +254,66 @@ class Kitsune
      */
     public function refreshViewSources(): bool
     {
-        $derivedSourcePaths = $this->compileViewPathDerivatives(Arr::wrap(config('view.paths')));
+        $manager = $this->getKitsuneManager();
+        $updatedSources = false;
 
-        $updatedGlobalPaths = $this->globalModeIsEnabled() && $this->setViewFinderPaths($derivedSourcePaths);
+        !$this->getGlobalNamespace() && $this->shouldResetOnDisableGlobalMode() && $this->resetGlobalViewFinder();
 
-        return $this->setViewFinderNamespacedPaths($derivedSourcePaths) || $updatedGlobalPaths;
-    }
-
-    /**
-     * Check if global mode is enabled.
-     *
-     * @return bool
-     */
-    public function globalModeIsEnabled(): bool
-    {
-        return $this->useGlobalMode ??= config('kitsune.core.global_mode.enabled');
-    }
-
-    /**
-     * Enable Kitsune's global mode and refresh the sources if necessary.
-     *
-     * @return $this
-     */
-    public function enableGlobalMode(): static
-    {
-        if (!$this->useGlobalMode) {
-            $this->useGlobalMode = true;
-
-            $this->refreshViewSources();
+        foreach ($manager->getRegisteredNamespaces() as $namespaceAlias) {
+            $updatedSources = $this->refreshNamespacePaths($manager->getNamespace($namespaceAlias)) || $updatedSources;
         }
 
-        return $this;
+        return $updatedSources;
     }
 
     /**
-     * Disable Kitsune's global mode.
+     * Configures the view sources for the given namespace accordingly to Kitsune.
      *
-     * @return $this
-     */
-    public function disableGlobalMode(): static
-    {
-        if ($this->useGlobalMode) {
-            $this->useGlobalMode = false;
-
-            if (config('kitsune.core.global_mode.reset_on_disable')) {
-                $this->setViewFinderPaths(Arr::wrap(config('view.paths')));
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set a new active layout.
-     *
-     * @param  string  $layout
-     */
-    public function setActiveLayout(string $layout): void
-    {
-        $this->activeLayout = $layout;
-
-        $this->refreshViewSources();
-    }
-
-    /**
-     * Get the currently activated layout.
-     *
-     * @return string|null
-     */
-    public function getActiveLayout(): ?string
-    {
-        return $this->activeLayout ??= config('kitsune.view.layout');
-    }
-
-    /**
-     * Get the repository for the alias or create a new one if it does not exist.
-     *
-     * @param  string  $sourceRepository
-     * @param  array|null  $sourcePaths
-     * @param  string|null  $basePath
-     * @return SourcePathRepository
-     */
-    public function getSourceRepository(
-        string $sourceRepository,
-        array $sourcePaths = null,
-        string $basePath = null
-    ): SourcePathRepository {
-        return $this->extraSourceRepositories[$sourceRepository] ??= new class(...func_get_args()) extends
-            SourcePathRepository {
-        };
-    }
-
-    /**
-     * Prepend a source path for the given repository.
-     *
-     * @param  string  $sourcePath
-     * @param  string|array  $sourceRepository
+     * @param  IsSourceNamespace  $namespace
      * @return bool
      */
-    public function prependPathForSource(string $sourcePath, string|array $sourceRepository): bool
+    public function refreshNamespacePaths(IsSourceNamespace $namespace): bool
     {
-        return $this->addPathForSource($sourcePath, $sourceRepository, true);
+        $updatedGlobalPaths = $this->globalModeEnabled()
+            && $this->getGlobalNamespace()->getName() === $namespace->getName()
+            && $this->configureGlobalViewFinder($namespace);
+
+        return $this->configureNamespaceViewFinder($namespace) || $updatedGlobalPaths;
     }
 
     /**
-     * Register a source path for the given repository.
+     * Resets the global ViewFinder-Paths to the application's default.
      *
-     * @param  string  $sourcePath
-     * @param  string|array  $sourceRepository
-     * @param  bool  $prepend
      * @return bool
      */
-    public function addPathForSource(string $sourcePath, string|array $sourceRepository, bool $prepend = false): bool
+    public function resetGlobalViewFinder(): bool
     {
-        $repository = call_user_func_array([$this, 'getSourceRepository'], Arr::wrap($sourceRepository));
+        $laravelPaths = Arr::wrap(config('view.paths'));
 
-        if ($prepend ? $repository->prependSource($sourcePath) : $repository->addSource($sourcePath)) {
-            return $this->refreshViewSources();
+        if (Arr::wrap($this->viewFinder->getPaths()) !== $laravelPaths) {
+            $this->viewFinder->setPaths($laravelPaths)->flush();
+
+            return true;
         }
 
         return false;
     }
 
     /**
-     * Get the source paths which have been registered for the source repository.
+     * Configure the global ViewFinder-Paths accordingly to the given namespace.
      *
-     * @param  string  $sourceRepository
-     * @return array
-     */
-    public function getRegisteredSourcePaths(string $sourceRepository): array
-    {
-        return $this->getSourceRepository($sourceRepository)->getSourcePaths();
-    }
-
-    /**
-     * Configure the "ViewFinder" to resolve every view with Kitsune's dynamically registered source paths.
-     *
-     * @param  array  $viewSourcePaths
+     * @param  string|IsSourceNamespace  $namespace
      * @return bool
      */
-    protected function setViewFinderPaths(array $viewSourcePaths): bool
+    public function configureGlobalViewFinder(string|IsSourceNamespace $namespace): bool
     {
-        if ($this->pathsHaveUpdates($viewSourcePaths, $this->viewFinder->getPaths())) {
+        $namespace = $this->getKitsuneHelper()->getNamespace($namespace);
+
+        if ($this->globalPathsHaveUpdated($namespace)) {
             // Update the global view source paths which are used on a global scale and flush resolved views,
             // as changing the paths for the finder, may also change the view which gets resolved
             // for a specific view name.
-            $this->viewFinder->setPaths($viewSourcePaths)->flush();
+            $this->viewFinder->setPaths($namespace->getPathsWithDerivatives(true))->flush();
 
             return true;
         }
@@ -189,22 +324,20 @@ class Kitsune
     /**
      * Configure the "ViewFinder" with the packages namespace and the resolvable source paths.
      *
-     * @param  array  $viewSourcePaths
+     * @param  string|IsSourceNamespace  $namespace
      * @return bool
      */
-    protected function setViewFinderNamespacedPaths(array $viewSourcePaths): bool
+    public function configureNamespaceViewFinder(string|IsSourceNamespace $namespace): bool
     {
-        if ($this->pathsHaveUpdates($viewSourcePaths, $this->namespacePaths)) {
+        $namespace = $this->getKitsuneHelper()->getNamespace($namespace);
+
+        if ($this->namespacePathsHaveUpdated($namespace)) {
             // Set the view source paths for the package namespace.
-            $this->viewFinder->replaceNamespace(static::VIEW_NAMESPACE, $viewSourcePaths);
+            $this->viewFinder->replaceNamespace($namespace->getName(), $namespace->getPathsWithDerivatives());
 
             // Flush resolved views, as changing the paths for the finder,
             // may also change the view which gets resolved for a specific view name.
             $this->viewFinder->flush();
-
-            // Cache the current paths for the given namespace, as hint related methods are not guaranteed by the
-            // ViewFinderInterface, but we don't want to replace and flush the views if there is no change.
-            $this->namespacePaths = $viewSourcePaths;
 
             return true;
         }
@@ -213,69 +346,71 @@ class Kitsune
     }
 
     /**
-     * Checks if the paths have been updated by comparing them after sorting.
+     * Retrieve the registered global view paths.
      *
-     * @param $newPaths
-     * @param $oldPaths
+     * @return array
+     */
+    public function getViewPaths(): array
+    {
+        return $this->viewFinder->getPaths();
+    }
+
+    /**
+     * Retrieve the view paths registered for a namespace.
+     *
+     * @param  IsSourceNamespace  $namespace
+     * @return array|null
+     */
+    public function getViewNamespacePaths(IsSourceNamespace $namespace): ?array
+    {
+        return $this->viewFinder->getHints()[$namespace->getName()] ?? null;
+    }
+
+    /**
+     * Determines if the global paths have been updated compared to the new paths.
+     *
+     * @param  IsSourceNamespace  $namespace
      * @return bool
      */
-    protected function pathsHaveUpdates($newPaths, $oldPaths): bool
+    protected function globalPathsHaveUpdated(IsSourceNamespace $namespace): bool
     {
-        sort($newPaths);
-        sort($oldPaths);
-
-        return $newPaths !== $oldPaths;
+        return $this->getKitsuneHelper()->pathsHaveUpdates(
+            $namespace->getPathsWithDerivatives(true),
+            $this->getViewPaths()
+        );
     }
 
     /**
-     * Filter given paths based on their existing directory in the filesystem.
+     * Determines if a namespaces paths have been updated compared to the new paths.
      *
-     * @param  array  $viewPaths
-     * @return array
+     * @param  IsSourceNamespace  $namespace
+     * @return bool
      */
-    protected function filterPaths(array $viewPaths): array
+    protected function namespacePathsHaveUpdated(IsSourceNamespace $namespace): bool
     {
-        return array_filter($viewPaths, fn($viewPath) => is_dir($viewPath));
+        return $this->getKitsuneHelper()->pathsHaveUpdates(
+            $namespace->getPathsWithDerivatives(),
+            $this->getViewNamespacePaths($namespace)
+        );
     }
 
     /**
-     * Compile a list of possible source paths based on
+     * Dispatches the core updated event if the core has been initialized before.
      *
-     * @param  array  $sourcePaths
-     * @return array
+     * @return void
      */
-    protected function compileViewPathDerivatives(array $sourcePaths): array
+    protected function dispatchCoreUpdatedEvent(): void
     {
-        $viewPaths = [];
-        $activeLayout = $this->getActiveLayout();
-
-        if ($activeLayout) {
-            foreach ($sourcePaths as $sourcePath) {
-                $viewPaths[] = sprintf('%s/%s', $sourcePath, $this->getActiveLayout());
-            }
-        }
-
-        foreach ($this->extraSourceRepositories as $sourceRepository) {
-            foreach ($sourceRepository->getSourcePaths() as $registeredVendorPath) {
-                if ($activeLayout) {
-                    $viewPaths[] = sprintf('%s/%s', $registeredVendorPath, $this->getActiveLayout());
-                }
-
-                $viewPaths[] = $registeredVendorPath;
-            }
-        }
-
-        return $this->filterPaths(array_merge($viewPaths, $sourcePaths));
+        KitsuneCoreUpdated::dispatchIf($this->initialized, $this);
     }
 
     /**
-     * Initializes all source repositories for the configured extra sources,
-     * to make sure these are included even when nothing was dynamically registered.
+     * Checks if the global view finder paths are supposed to be reset when disabling the global mode.
+     *
+     * @return bool
      */
-    protected function initializeConfiguredExtraSources(): void
+    protected function shouldResetOnDisableGlobalMode(): bool
     {
-        foreach (array_keys(config('kitsune.view.extra_sources', [])) as $alias) {
-            $this->getSourceRepository($alias);
-        }
+        return config('kitsune.core.global_mode.reset_on_disable', true);
     }
 }

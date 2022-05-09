@@ -1,18 +1,17 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Middleware;
+namespace Kitsune\Core\Middleware;
 
 use Closure;
+use Kitsune\Core\Concerns\UtilisesKitsune;
 
 class KitsuneMiddleware
 {
-    public function handle($request, Closure $next, $layout = null)
+    use UtilisesKitsune;
+
+    public function handle($request, Closure $next)
     {
-        if($layout) {
-            app('kitsune')->setActiveLayout($layout);
-        } else {
-            app('kitsune')->refreshViewSources();
-        }
+        $this->getKitsuneCore()->initialize();
 
         return $next($request);
     }

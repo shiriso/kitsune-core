@@ -1,17 +1,25 @@
 <?php
 
-namespace Shiriso\Kitsune\Core\Middleware;
+namespace Kitsune\Core\Middleware;
 
 use Closure;
+use Kitsune\Core\Concerns\UtilisesKitsune;
 
 class KitsuneGlobalModeMiddleware
 {
+    use UtilisesKitsune;
+
     public function handle($request, Closure $next, $state = true)
     {
-        if(!$state || $state === 'false') {
-            app('kitsune')->disableGlobalMode();
+        if (!$state || $state === 'false') {
+            $this->getKitsuneCore()->disableGlobalMode();
         } else {
-            app('kitsune')->enableGlobalMode();
+            $this->getKitsuneCore()->enableGlobalMode();
+            $this->getKitsuneCore()->initialize();
+
+            if (is_string($state) && $this->getKitsuneManager()->hasNamespace($state)) {
+                $this->getKitsuneCore()->setGlobalNamespace($state);
+            }
         }
 
         return $next($request);
