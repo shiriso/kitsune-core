@@ -37,7 +37,7 @@ abstract class AbstractNamespaceTestCase extends AbstractTestCase
         // is up-to-date which would get triggered by the listener.
         $namespace->dispatchUpdatedEvent();
 
-        $this->assertIsObject($namespace);
+        $this->assertInstanceOf(IsSourceNamespace::class, $namespace);
 
         return $namespace;
     }
