@@ -33,7 +33,7 @@ class KitsuneHelperTest extends AbstractTestCase
      */
     public function usesServiceFromConfig(array $service): void
     {
-        $this->assertEquals(config(sprintf('kitsune.core.service.%s', $service['config'])), $service['resolver']());
+        $this->assertEquals(config(sprintf('kitsune.core.service.%s', $service['config'])), $service['resolver']($this));
     }
 
     /**
@@ -48,7 +48,7 @@ class KitsuneHelperTest extends AbstractTestCase
         unset($serviceConfig[$service['config']]);
         Config::set('kitsune.core.service', $serviceConfig);
 
-        $this->assertEquals($service['default'], $service['resolver']());
+        $this->assertEquals($service['default'], $service['resolver']($this));
     }
 
     /**
@@ -62,7 +62,7 @@ class KitsuneHelperTest extends AbstractTestCase
         Config::set(sprintf('kitsune.core.service.%s', $service['config']), null);
 
         $this->expectException($service['exception']);
-        $service['resolver']();
+        $service['resolver']($this);
     }
 
     /**
@@ -271,7 +271,7 @@ class KitsuneHelperTest extends AbstractTestCase
     /**
      * @return array
      */
-    public function availableDefaultSourcesDataProvider(): array
+    public static function availableDefaultSourcesDataProvider(): array
     {
         return [
             'default' => [
@@ -298,14 +298,14 @@ class KitsuneHelperTest extends AbstractTestCase
      *
      * @return array
      */
-    public function serviceDataProvider(): array
+    public static function serviceDataProvider(): array
     {
         return [
             'KitsuneCore' => [
                 [
                     'config' => 'class',
                     'default' => Kitsune::class,
-                    'resolver' => fn() => $this->getKitsuneHelper()->getCoreClass(),
+                    'resolver' => fn($object) => $object->getKitsuneHelper()->getCoreClass(),
                     'exception' => InvalidKitsuneCoreException::class
                 ]
             ],
@@ -313,7 +313,7 @@ class KitsuneHelperTest extends AbstractTestCase
                 [
                     'config' => 'manager',
                     'default' => KitsuneManager::class,
-                    'resolver' => fn() => $this->getKitsuneHelper()->getManagerClass(),
+                    'resolver' => fn($object) => $object->getKitsuneHelper()->getManagerClass(),
                     'exception' => InvalidKitsuneManagerException::class
                 ]
             ],
@@ -321,7 +321,7 @@ class KitsuneHelperTest extends AbstractTestCase
                 [
                     'config' => 'namespace',
                     'default' => SourceNamespace::class,
-                    'resolver' => fn() => $this->getKitsuneHelper()->getSourceNamespaceClass(),
+                    'resolver' => fn($object) => $object->getKitsuneHelper()->getSourceNamespaceClass(),
                     'exception' => InvalidSourceNamespaceException::class
                 ]
             ],
@@ -329,7 +329,7 @@ class KitsuneHelperTest extends AbstractTestCase
                 [
                     'config' => 'source',
                     'default' => SourceRepository::class,
-                    'resolver' => fn() => $this->getKitsuneHelper()->getSourceRepositoryClass(),
+                    'resolver' => fn($object) => $object->getKitsuneHelper()->getSourceRepositoryClass(),
                     'exception' => InvalidSourceRepositoryException::class
                 ]
             ],
@@ -341,7 +341,7 @@ class KitsuneHelperTest extends AbstractTestCase
      *
      * @return array
      */
-    public function toCamelCaseDataProvider(): array
+    public static function toCamelCaseDataProvider(): array
     {
         return [
             'underscores' => [
@@ -368,7 +368,7 @@ class KitsuneHelperTest extends AbstractTestCase
      *
      * @return array
      */
-    public function priorityValueMappingDataProvider(): array
+    public static function priorityValueMappingDataProvider(): array
     {
         return [
             'namespace' => ['namespace', 30],
@@ -418,7 +418,7 @@ class KitsuneHelperTest extends AbstractTestCase
      *
      * @return array
      */
-    public function pathComparisonDataProvider(): array
+    public static function pathComparisonDataProvider(): array
     {
         return [
             'old path null' => [
@@ -459,7 +459,7 @@ class KitsuneHelperTest extends AbstractTestCase
      *
      * @return array
      */
-    public function viewConfigOverrideDataProvider(): array
+    public static function viewConfigOverrideDataProvider(): array
     {
         return [
             'without overrides' => [
@@ -577,7 +577,7 @@ class KitsuneHelperTest extends AbstractTestCase
      *
      * @return array
      */
-    public function packageConfigOverrideDataProvider(): array
+    public static function packageConfigOverrideDataProvider(): array
     {
         return [
             'without overrides' => [
