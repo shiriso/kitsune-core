@@ -176,7 +176,7 @@ class HasEnumPrioritiesTest extends AbstractTestCase
     /**
      * @return array
      */
-    public function availablePriorityRatings(): array
+    public static function availablePriorityRatings(): array
     {
         return [
             'least' => ['least', 10],
@@ -190,7 +190,7 @@ class HasEnumPrioritiesTest extends AbstractTestCase
     /**
      * @return array
      */
-    public function availableMappedPriorityRatings(): array
+    public static function availableMappedPriorityRatings(): array
     {
         return [
             'namespace' => ['namespace', 30],

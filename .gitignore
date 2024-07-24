@@ -1,4 +1,5 @@
 /.idea/*
+/.phpunit.cache/*
 npm-debug.log
 yarn-error.log
 .phpunit.result.cache

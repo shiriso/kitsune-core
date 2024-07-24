@@ -2,6 +2,7 @@
 
 namespace Kitsune\Core\Tests\Unit;
 
+use ErrorException;
 use Illuminate\Support\Facades\Event;
 use Kitsune\Core\Concerns\UtilisesKitsune;
 use Kitsune\Core\Contracts\IsSourceNamespace;
@@ -211,7 +212,7 @@ class NamespaceInteractionTest extends AbstractNamespaceTestCase
         $this->assertInstanceOf(config('kitsune.core.service.source'), $namespace->getSource('published'));
         $this->assertFalse($namespace->hasSource('does-not-exist'));
 
-        $this->expectErrorMessage('Undefined array key "does-not-exist"');
+        $this->expectException(ErrorException::class);
         $namespace->getSource('does-not-exist');
 
         return $namespace;
